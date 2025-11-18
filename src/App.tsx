@@ -1,44 +1,51 @@
 import React from "react";
 import "./App.css";
 
-interface BoardProps {
-  n: number;
-  s: number;
-}
+function Triangle({x, y, side, up}: {
+  x: number; y: number;
+  side: number;
+  up: boolean;
+}) {
+  const h = (Math.sqrt(3) / 2) * side;
 
-function Board({n, s}: BoardProps) {
-  const h = s * Math.sqrt(3) / 2;
+  let points;
 
-  const grid = [];
-  for (let j = -n; j <= n; j++) {
-    for (let i = -n; i <= n; i++) {
-      if ((Math.abs(j) + Math.abs(i)) < (n * 2)) {
-        const x = 250 + i * (s/2);
-        const y = 250 + j * h;
-
-        if ((i+j) % 2 == 0) {
-          grid.push(<polygon points={`${x},${y - (2 * h / 3)} ${x - (s/2)},${y + (h/3)} ${x + (s/2)},${y + (h/3)}`} fill="none" stroke="black" strokeWidth={3} strokeLinejoin="bevel"/>)
-        } else {
-          grid.push(<polygon points={`${x},${y + (2 * h / 3)} ${x - (s/2)},${y - (h/3)} ${x + (s/2)},${y + (h/3)}`} fill="none" stroke="black" strokeWidth={3} strokeLinejoin="bevel"/>)
-        }
-      }
-    }
+  if (up) {
+    points = [
+      `${x},${y - h / 2}`,
+      `${x - side /2},${y + h / 2}`,
+      `${x + side / 2},${y + h / 2}`
+    ].join(" ")
+  } else {
+    points = [
+      `${x},${y + h / 2}`,
+      `${x - side /2},${y - h / 2}`,
+      `${x + side / 2},${y - h / 2}`
+    ].join(" ")
   }
 
+  return <polygon points={points} stroke="black" fill="none" />;
+}
+
+export default function App() {
+  const triangles = [];
+  const side = 50;
+  const height = (Math.sqrt(3) / 2) * side
+
+  // Row 1
+  triangles.push(<Triangle x={225} y={250 - (height /2)} side={side} up={true} />);
+  triangles.push(<Triangle x={250} y={250 - (height /2)} side={side} up={false} />);
+  triangles.push(<Triangle x={275} y={250 - (height /2)} side={side} up={true} />);
+
+  // Row 2
+  triangles.push(<Triangle x={225} y={250 + (height /2)} side={side} up={false} />);
+  triangles.push(<Triangle x={250} y={250 + (height /2)} side={side} up={true} />);
+  triangles.push(<Triangle x={275} y={250 + (height /2)} side={side} up={false} />);
+
+
   return (
-    <svg width="500" height="500" className="board">
-      {grid}
+  <svg width="500" height="500" style={{border: "1px solid black"}}>
+    {triangles}
     </svg>
-  )
+  );
 }
-
-function App() {
-  return (
-    <div className="app">
-      <h1>Calissons Puzzle</h1>
-      <Board n={1} s={50}/>
-    </div>
-  )
-}
-
-export default App
