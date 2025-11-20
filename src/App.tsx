@@ -1,31 +1,76 @@
-import React from "react";
+import React, { useState } from "react";
 import "./App.css";
 
-interface BoardProps {
-  x: number;
-  y: number;
+type Vector2 = [number, number];
+
+const svgWidth = 750;
+const svgHeight = 750;
+
+function DrawGrid({size}: {
+  size: number
+}) {
+  const width = size;
+  const height = size;
+  const depth = size;
+
+  const v_r: Vector2 = [Math.sqrt(3) / 2, -0.5];
+  const v_g: Vector2 = [0, 1];
+  const v_b: Vector2 = [-Math.sqrt(3) / 2, -0.5];
+
+  const points: Vector2[] = [];
+
+  for (let r = 0; r <= width; r++) {
+    for (let g = 0; g <= height; g++) {
+      for (let b = 0; b <= depth; b++) {
+        const x = r * v_r[0] + g * v_g[0] + b * v_b[0]
+        const y = r * v_r[1] + g * v_g[1] + b * v_b[1]
+
+        points.push([x, y])
+      }
+    }
+  }
+
+  const scale = 80;
+  const x_offset = svgWidth / 2;
+  const y_offset = svgHeight / 2;
+
+  return (
+    <>
+      {points.map(([x, y], i) => (
+        <circle
+          key={i}
+          cx={x * scale + x_offset}
+          cy={y_offset - y * scale}
+          r={5}
+          fill="black"
+        />
+      ))}
+    </>
+  );
 }
 
-function Board({x, y}: BoardProps) {
+export default function App() {
+  const [gridSize, setGridSize] = useState(3);
+
   return (
-    <svg width="500" height="500" className="board">
-      <polygon points={`${x},${y} ${x},${y + 100} ${x - 86.6},${y + 50}`} fill="none" stroke="black" strokeWidth={3} strokeLinejoin="bevel"/>
-      <polygon points={`${x},${y} ${x},${y + 100} ${x + 86.6},${y + 50}`} fill="none" stroke="black" strokeWidth={3} strokeLinejoin="bevel"/>
-      <polygon points={`${x},${y} ${x - 86.6},${y - 50} ${x - 86.6},${y + 50}`} fill="none" stroke="black" strokeWidth={3} strokeLinejoin="bevel"/>
-      <polygon points={`${x},${y} ${x + 86.6},${y + 50} ${x + 86.6},${y - 50}`} fill="none" stroke="black" strokeWidth={3} strokeLinejoin="bevel"/>
-      <polygon points={`${x},${y} ${x - 86.6},${y - 50} ${x},${y - 100}`} fill="none" stroke="black" strokeWidth={3} strokeLinejoin="bevel"/>
-      <polygon points={`${x},${y} ${x + 86.6},${y - 50} ${x},${y - 100}`} fill="none" stroke="black" strokeWidth={3} strokeLinejoin="bevel"/>
+  <div className="app">
+    <h1>Calissons Puzzle</h1>
+    <svg width={svgWidth} height={svgHeight} className="board">
+      <DrawGrid size={gridSize} />
     </svg>
-  )
-}
-
-function App() {
-  return (
-    <div className="app">
-      <h1>Calissons Puzzle</h1>
-      <Board x={250} y={250} />
+    <div style={{ marginTop: "10px" }}>
+      <label>
+        Grid Size: 
+        <input
+          type="number"
+          min={1}
+          max={4}
+          value={gridSize}
+          onChange={(e) => setGridSize(Number(e.target.value))}
+          style={{ marginLeft: "5px", width: "50px" }}
+          />
+      </label>
     </div>
-  )
+  </div>
+  );
 }
-
-export default App
