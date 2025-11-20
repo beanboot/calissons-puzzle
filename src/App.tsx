@@ -1,51 +1,76 @@
-import React from "react";
+import React, { useState } from "react";
 import "./App.css";
 
-function Triangle({x, y, side, up}: {
-  x: number; y: number;
-  side: number;
-  up: boolean;
+type Vector2 = [number, number];
+
+const svgWidth = 750;
+const svgHeight = 750;
+
+function DrawGrid({size}: {
+  size: number
 }) {
-  const h = (Math.sqrt(3) / 2) * side;
+  const width = size;
+  const height = size;
+  const depth = size;
 
-  let points;
+  const v_r: Vector2 = [Math.sqrt(3) / 2, -0.5];
+  const v_g: Vector2 = [0, 1];
+  const v_b: Vector2 = [-Math.sqrt(3) / 2, -0.5];
 
-  if (up) {
-    points = [
-      `${x},${y - h / 2}`,
-      `${x - side /2},${y + h / 2}`,
-      `${x + side / 2},${y + h / 2}`
-    ].join(" ")
-  } else {
-    points = [
-      `${x},${y + h / 2}`,
-      `${x - side /2},${y - h / 2}`,
-      `${x + side / 2},${y - h / 2}`
-    ].join(" ")
+  const points: Vector2[] = [];
+
+  for (let r = 0; r <= width; r++) {
+    for (let g = 0; g <= height; g++) {
+      for (let b = 0; b <= depth; b++) {
+        const x = r * v_r[0] + g * v_g[0] + b * v_b[0]
+        const y = r * v_r[1] + g * v_g[1] + b * v_b[1]
+
+        points.push([x, y])
+      }
+    }
   }
 
-  return <polygon points={points} stroke="black" fill="none" />;
+  const scale = 80;
+  const x_offset = svgWidth / 2;
+  const y_offset = svgHeight / 2;
+
+  return (
+    <>
+      {points.map(([x, y], i) => (
+        <circle
+          key={i}
+          cx={x * scale + x_offset}
+          cy={y_offset - y * scale}
+          r={5}
+          fill="black"
+        />
+      ))}
+    </>
+  );
 }
 
 export default function App() {
-  const triangles = [];
-  const side = 50;
-  const height = (Math.sqrt(3) / 2) * side
-
-  // Row 1
-  triangles.push(<Triangle x={225} y={250 - (height /2)} side={side} up={true} />);
-  triangles.push(<Triangle x={250} y={250 - (height /2)} side={side} up={false} />);
-  triangles.push(<Triangle x={275} y={250 - (height /2)} side={side} up={true} />);
-
-  // Row 2
-  triangles.push(<Triangle x={225} y={250 + (height /2)} side={side} up={false} />);
-  triangles.push(<Triangle x={250} y={250 + (height /2)} side={side} up={true} />);
-  triangles.push(<Triangle x={275} y={250 + (height /2)} side={side} up={false} />);
-
+  const [gridSize, setGridSize] = useState(3);
 
   return (
-  <svg width="500" height="500" style={{border: "1px solid black"}}>
-    {triangles}
+  <div className="app">
+    <h1>Calissons Puzzle</h1>
+    <svg width={svgWidth} height={svgHeight} className="board">
+      <DrawGrid size={gridSize} />
     </svg>
+    <div style={{ marginTop: "10px" }}>
+      <label>
+        Grid Size: 
+        <input
+          type="number"
+          min={1}
+          max={4}
+          value={gridSize}
+          onChange={(e) => setGridSize(Number(e.target.value))}
+          style={{ marginLeft: "5px", width: "50px" }}
+          />
+      </label>
+    </div>
+  </div>
   );
 }
