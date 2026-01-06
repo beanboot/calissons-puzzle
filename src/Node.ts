@@ -1,8 +1,10 @@
 export class Node {
+  id: number;
   value: any;
   neighbors: Node[];
 
-  constructor(value: any) {
+  constructor(id: number, value: any) {
+    this.id = id;
     this.value = value;
     this.neighbors = [];
   }

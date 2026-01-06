@@ -7,8 +7,8 @@ export class Graph {
     this.nodes = [];
   }
 
-  addNode(value: any) {
-    const node = new Node(value);
+  addNode(id: number, value: any) {
+    const node = new Node(id, value);
     this.nodes.push(node);
   }
 
