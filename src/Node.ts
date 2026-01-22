@@ -1,7 +1,7 @@
 export class Node {
   id: number;
   value: any;
-  neighbors: Node[];
+  neighbors: [Node, number][]
 
   constructor(id: number, value: any) {
     this.id = id;
@@ -9,7 +9,7 @@ export class Node {
     this.neighbors = [];
   }
 
-  addNeighbor(node: Node) {
-    this.neighbors.push(node);
+  addNeighbor(node: Node, orientation: number) {
+    this.neighbors.push([node, orientation]);
   }
 }

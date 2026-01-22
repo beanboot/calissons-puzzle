@@ -12,9 +12,9 @@ export class Graph {
     this.nodes.push(node);
   }
 
-  addEdge(source: Node, destination: Node) {
-    source.addNeighbor(destination);
-    destination.addNeighbor(source);
+  addEdge(source: Node, destination: Node, orientation: number) {
+    source.addNeighbor(destination, orientation);
+    destination.addNeighbor(source, orientation);
   }
 }
 
