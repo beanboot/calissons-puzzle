@@ -1,15 +1,15 @@
 export class Node {
   id: number;
   value: any;
-  neighbors: [Node, number][]
+  neighbours: Node[];
 
   constructor(id: number, value: any) {
     this.id = id;
     this.value = value;
-    this.neighbors = [];
+    this.neighbours = [];
   }
 
-  addNeighbor(node: Node, orientation: number) {
-    this.neighbors.push([node, orientation]);
+  addNeighbour(node: Node) {
+    this.neighbours.push(node);
   }
 }

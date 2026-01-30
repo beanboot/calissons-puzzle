@@ -17,11 +17,14 @@ function addCubeCoords(a: CubeCoord, b: CubeCoord): CubeCoord {
   }
 }
 
+type Point = {
+  x: number;
+  y: number;
+};
+
 type CalissonTile = {
   id: string;
-  cx: number;
-  cy: number;
-  orientation: number;
+  points: Point[];
 };
 
 // type for node values (includes 2D coordinates)
@@ -39,6 +42,101 @@ const CUBE_DIRECTIONS: CubeCoord[] = [
   {q: -1, r: 1, s: 0},
   {q: 0, r: 1, s: -1},
 ]
+
+const findPointsFromNodes = (nodeA: Node, nodeB: Node): Point[] => {
+  const sharedNeighbours: Node[] = []
+
+  for (const neighbourA of nodeA.neighbours) {
+    for (const neighbourB of nodeB.neighbours) {
+      if (neighbourA == neighbourB) {
+        sharedNeighbours.push(neighbourA)
+      }
+    }
+  }
+
+  return ([
+    {x: nodeA.value.x, y: nodeA.value.y},
+    {x: sharedNeighbours[0].value.x, y: sharedNeighbours[0].value.y},
+    {x: nodeB.value.x, y: nodeB.value.y},
+    {x: sharedNeighbours[1].value.x, y: sharedNeighbours[1].value.y},
+  ])
+};
+
+const GetFillFromPoints = (a: Point, b: Point): string => {
+  let fill: string;
+
+  if (a.x === b.x) {
+    fill = "yellow";
+  } else if (a.x > b.x) {
+    if (a.y > b.y) {
+      fill = "red"
+    } else {
+      fill = "blue"
+    }
+  } else {
+    if (a.y > b.y) {
+      fill = "blue"
+    } else {
+      fill = "red"
+    }
+  }
+
+  return fill;
+} 
+
+function DrawCalissonTile({ tile }: { tile: CalissonTile }) {
+  const pointsAttr = tile.points
+    .map(p => `${p.x},${p.y}`)
+    .join(" ");
+
+  const a = tile.points[0];
+  const b = tile.points[2];
+
+  let fill: string;
+
+  fill = GetFillFromPoints(a, b)
+
+  return (
+    <polygon
+      points={pointsAttr}
+      fill={fill}
+      opacity={0.8}
+    />
+  );
+}
+
+function countSharedPoints(a: Point[], b: Point[]): number {
+  let count = 0;
+
+  for (const p1 of a) {
+    for (const p2 of b) {
+      if (p1.x === p2.x && p1.y === p2.y) {
+        count++;
+      }
+    }
+  }
+
+  return count;
+}
+
+function canPlaceTile(points: Point[], tiles: CalissonTile[]): boolean {
+  for (const tile of tiles) {
+    const shared = countSharedPoints(tile.points, points);
+    if (shared === 3) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function getNodeFillFromPoints(a: Point[], b: Point[]): string {
+  if (countSharedPoints(a, b) === 4) {
+    return(GetFillFromPoints(a[0], a[2]))
+  } else {
+    return("white")
+  }
+}
 
 // graph building function
 function buildGraph(size: number) {
@@ -75,17 +173,15 @@ function buildGraph(size: number) {
 
   // iterates through all graph nodes and checks each direction to add an edge between node and neighbour
   for (const node of graph.nodes) {
-    for (const [dirIndex, dir] of CUBE_DIRECTIONS.entries()) {
+    for (const dir of CUBE_DIRECTIONS) {
       const target = addCubeCoords({q: node.value.q, r: node.value.r, s: node.value.s}, dir)
-
-      const orientation = dirIndex % 3
 
       const neighbor = index.get(`${target.q},${target.r},${target.s}`);
 
       if (!neighbor) continue;
 
       if (neighbor.id > node.id) {
-        graph.addEdge(node, neighbor, orientation);
+        graph.addEdge(node, neighbor);
       }
     }
   }
@@ -94,25 +190,25 @@ function buildGraph(size: number) {
 }
 
 // function to visualise graph
-function DrawGrid({ graph, onNodeClick }:
-{ graph: Graph; onNodeClick: (info: {cx: number; cy: number; orientation: number;}) => void }) {
+function DrawGrid({ graph, hoveredNodePoints, onNodeClick, onNodeHover }:
+{ graph: Graph; hoveredNodePoints: Point[]; onNodeClick: (points: Point[]) => void; onNodeHover: (points: Point[] | null) => void;}) {
   return (
     <>
       {/* map applies a function to each element iteratively */}
       {graph.nodes.map((node, i) =>
-        node.neighbors.map((n, j) => {
+        node.neighbours.map((n, j) => {
           {/* if neighbour id is less than current node id, it means its already been checked */}
-          if (n[0].id <= node.id) return null;
+          if (n.id <= node.id) return null;
           
           {/* checks if node is an edge node and draws a line */}
-          if (node.neighbors.length <= 4 && n[0].neighbors.length <= 4) {
+          if (node.neighbours.length <= 4 && n.neighbours.length <= 4) {
             return (
             <line
               key={`edge-${i}-${j}`}
               x1={node.value.x}
               y1={node.value.y}
-              x2={n[0].value.x}
-              y2={n[0].value.y}
+              x2={n.value.x}
+              y2={n.value.y}
               stroke="black"
               strokeWidth={.06}
             />
@@ -125,8 +221,8 @@ function DrawGrid({ graph, onNodeClick }:
               key={`edge-${i}-${j}`}
               x1={node.value.x}
               y1={node.value.y}
-              x2={n[0].value.x}
-              y2={n[0].value.y}
+              x2={n.value.x}
+              y2={n.value.y}
               stroke="black"
               strokeWidth={.03}
               strokeDasharray=".1 .2"
@@ -138,19 +234,21 @@ function DrawGrid({ graph, onNodeClick }:
             <circle
               key={`circle-${i}-${j}`}
               className="node"
-              cx={((node.value.x + n[0].value.x) / 2)}
-              cy={((node.value.y + n[0].value.y) / 2)}
+              cx={((node.value.x + n.value.x) / 2)}
+              cy={((node.value.y + n.value.y) / 2)}
               r=".1"
               stroke="black"
               strokeWidth={.05}
               strokeOpacity={0.5}
-              fill="white"
+              fill={getNodeFillFromPoints(findPointsFromNodes(node, n), hoveredNodePoints)}
               onClick={() =>
-                onNodeClick({
-                  cx: (node.value.x + n[0].value.x) / 2,
-                  cy: (node.value.y + n[0].value.y) / 2,
-                  orientation: n[1]
-                })
+                onNodeClick(findPointsFromNodes(node, n))
+              }
+              onMouseEnter={() =>
+                onNodeHover(findPointsFromNodes(node, n))
+              }
+              onMouseLeave={() =>
+                onNodeHover(null)
               }
             />
             ]);
@@ -178,21 +276,38 @@ export default function App() {
 
   const [tiles, setTiles] = useState<CalissonTile[]>([]);
 
-  function handleNodeClick({cx, cy, orientation}: 
-  {
-    cx: number;
-    cy: number;
-    orientation: number;
-  }) {
-    setTiles(prev => [
-      ...prev,
-      {
-        id: `${cx},${cy},${orientation}`,
-        cx,
-        cy,
-        orientation,
-      },
-    ]);
+  const [hoveredNodePoints, setHoveredNodePoints] = useState<Point[]>([]);
+
+  function handleNodeClick(points: Point[]) {
+    const id = points.map(p => `${p.x},${p.y}`).join("|");
+
+    setTiles(prevTiles => {
+      const tileExists = prevTiles.find(tile => tile.id === id);
+
+      if (tileExists) {
+        return prevTiles.filter(tile => tile.id !== id);
+      }
+
+      if (!canPlaceTile(points, prevTiles)) {
+        return prevTiles;
+      }
+
+      return [
+        ...prevTiles,
+        {
+          id: id,
+          points: points
+        }
+      ];
+    });
+  }
+
+  function handleNodeHover(points: Point[] | null) {
+    if (points === null) {
+      setHoveredNodePoints([])
+    } else {
+      setHoveredNodePoints(points)
+    }
   }
 
   console.log("tiles:", tiles);
@@ -217,7 +332,11 @@ export default function App() {
         preserveAspectRatio="xMidYMid meet"
         className="board"
       >
-        <DrawGrid graph={graph} onNodeClick={handleNodeClick}/>
+        {tiles.map(tile => (
+          <DrawCalissonTile key={tile.id} tile={tile} />
+        ))}
+
+        <DrawGrid graph={graph} hoveredNodePoints={hoveredNodePoints} onNodeClick={handleNodeClick} onNodeHover={handleNodeHover}/>
       </svg>
 
       <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: 8 }}>
@@ -226,7 +345,10 @@ export default function App() {
           <button
             type="button"
             aria-label="decrease grid size"
-            onClick={() => setGridSize(prev => clamp(prev - 1))}
+            onClick={() => {
+              setGridSize(prev => clamp(prev - 1));
+              setTiles([])
+            }}
           >
             -
           </button>
@@ -243,7 +365,10 @@ export default function App() {
           <button
             type="button"
             aria-label="increase grid size"
-            onClick={() => setGridSize(prev => clamp(prev + 1))}
+            onClick={() => {
+              setGridSize(prev => clamp(prev + 1));
+              setTiles([]);
+            }}
           >
             +
           </button>
