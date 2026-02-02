@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Graph } from "./Graph";
 import { Node } from "./Node";
 import "./App.css";
@@ -27,6 +27,11 @@ type CalissonTile = {
   points: Point[];
 };
 
+type Edge = {
+  nodeA: Node;
+  nodeB: Node;
+}
+
 // type for node values (includes 2D coordinates)
 type NodeValue = CubeCoord & {
   x: number;
@@ -43,6 +48,12 @@ const CUBE_DIRECTIONS: CubeCoord[] = [
   {q: 0, r: 1, s: -1},
 ]
 
+// min max included
+function randomIntFromInterval(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+// returns points from which calisson tile should be drawn
 const findPointsFromNodes = (nodeA: Node, nodeB: Node): Point[] => {
   const sharedNeighbours: Node[] = []
 
@@ -190,8 +201,8 @@ function buildGraph(size: number) {
 }
 
 // function to visualise graph
-function DrawGrid({ graph, hoveredNodePoints, onNodeClick, onNodeHover }:
-{ graph: Graph; hoveredNodePoints: Point[]; onNodeClick: (points: Point[]) => void; onNodeHover: (points: Point[] | null) => void;}) {
+function DrawGrid({ graph, edges, hoveredNodePoints, onNodeClick, onNodeHover }:
+{ graph: Graph; edges: Edge[]; hoveredNodePoints: Point[]; onNodeClick: (points: Point[]) => void; onNodeHover: (points: Point[] | null) => void;}) {
   return (
     <>
       {/* map applies a function to each element iteratively */}
@@ -213,46 +224,60 @@ function DrawGrid({ graph, hoveredNodePoints, onNodeClick, onNodeHover }:
               strokeWidth={.06}
             />
             );
-          
-          {/* else the node is on the inside, and a dotted line is drawn plus a dot in the middle */}
           } else {
-            return ([
-            <line
-              key={`edge-${i}-${j}`}
-              x1={node.value.x}
-              y1={node.value.y}
-              x2={n.value.x}
-              y2={n.value.y}
-              stroke="black"
-              strokeWidth={.03}
-              strokeDasharray=".1 .2"
-              strokeDashoffset={.1}
-              strokeLinecap="round"
-            />,
+            if (edges.some(e =>
+              (e.nodeA.id === node.id && e.nodeB.id === n.id) ||
+              (e.nodeA.id === n.id && e.nodeB.id === node.id)
+            )) {
+              return (
+              <line
+                key={`edge-${i}-${j}`}
+                x1={node.value.x}
+                y1={node.value.y}
+                x2={n.value.x}
+                y2={n.value.y}
+                stroke="black"
+                strokeWidth={.08}
+              />
+              );
+            } else {
+              return ([
+              <line
+                key={`edge-${i}-${j}`}
+                x1={node.value.x}
+                y1={node.value.y}
+                x2={n.value.x}
+                y2={n.value.y}
+                stroke="black"
+                strokeWidth={.03}
+                strokeDasharray=".1 .2"
+                strokeDashoffset={.1}
+                strokeLinecap="round"
+              />,
 
-            // calisson tile interactive node
-            <circle
-              key={`circle-${i}-${j}`}
-              className="node"
-              cx={((node.value.x + n.value.x) / 2)}
-              cy={((node.value.y + n.value.y) / 2)}
-              r=".1"
-              stroke="black"
-              strokeWidth={.05}
-              strokeOpacity={0.5}
-              fill={getNodeFillFromPoints(findPointsFromNodes(node, n), hoveredNodePoints)}
-              onClick={() =>
-                onNodeClick(findPointsFromNodes(node, n))
-              }
-              onMouseEnter={() =>
-                onNodeHover(findPointsFromNodes(node, n))
-              }
-              onMouseLeave={() =>
-                onNodeHover(null)
-              }
-            />
-            ]);
-          }
+              // calisson tile interactive node
+              <circle
+                key={`circle-${i}-${j}`}
+                className="node"
+                cx={((node.value.x + n.value.x) / 2)}
+                cy={((node.value.y + n.value.y) / 2)}
+                r=".1"
+                stroke="black"
+                strokeWidth={.05}
+                strokeOpacity={0.5}
+                fill={getNodeFillFromPoints(findPointsFromNodes(node, n), hoveredNodePoints)}
+                onClick={() =>
+                  onNodeClick(findPointsFromNodes(node, n))
+                }
+                onMouseEnter={() =>
+                  onNodeHover(findPointsFromNodes(node, n))
+                }
+                onMouseLeave={() =>
+                  onNodeHover(null)
+                }
+              />
+              ]);
+          }}
           })
       )}
       
@@ -274,9 +299,14 @@ export default function App() {
   // sets default grid size
   const [gridSize, setGridSize] = useState(2);
 
+  // initiates tiles state
   const [tiles, setTiles] = useState<CalissonTile[]>([]);
 
+  const [edges, setEdges] = useState<Edge[]>([]);
+
   const [hoveredNodePoints, setHoveredNodePoints] = useState<Point[]>([]);
+
+  const graph = useMemo(() => buildGraph(gridSize), [gridSize]);
 
   function handleNodeClick(points: Point[]) {
     const id = points.map(p => `${p.x},${p.y}`).join("|");
@@ -310,10 +340,35 @@ export default function App() {
     }
   }
 
-  console.log("tiles:", tiles);
+  function makeRandomEdges(numOfEdges: number) {
+    const nodes = graph.nodes;
+    if (!nodes.length) return;
 
-  // calls the buildGraph function
-  const graph = buildGraph(gridSize);
+    for (let i = 0; i < numOfEdges; i++) {
+      const node = nodes[randomIntFromInterval(0, nodes.length - 1)];
+      const neighbours = node.neighbours;
+      if (!neighbours.length) continue;
+
+      const neighbour = neighbours[randomIntFromInterval(0, neighbours.length - 1)];
+
+      if (node.id === neighbour.id) continue;
+
+      setEdges(prev => {
+        if (prev.some(e =>
+          (e.nodeA.id === node.id && e.nodeB.id === neighbour.id) ||
+          (e.nodeA.id === neighbour.id && e.nodeB.id === node.id)
+        )) {
+          return prev;
+        }
+        return [...prev, { nodeA: node, nodeB: neighbour }];
+      });
+    }
+  }
+
+  useEffect(() => {
+    setEdges([]);
+    makeRandomEdges(3);
+  }, [gridSize]);
 
   // limits the grid size to 4
   const clamp = (n: number) => Math.max(2, Math.min(4, Math.floor(n)));
@@ -336,7 +391,7 @@ export default function App() {
           <DrawCalissonTile key={tile.id} tile={tile} />
         ))}
 
-        <DrawGrid graph={graph} hoveredNodePoints={hoveredNodePoints} onNodeClick={handleNodeClick} onNodeHover={handleNodeHover}/>
+        <DrawGrid graph={graph} edges={edges} hoveredNodePoints={hoveredNodePoints} onNodeClick={handleNodeClick} onNodeHover={handleNodeHover}/>
       </svg>
 
       <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: 8 }}>
