@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Graph } from "./Graph";
 import { Node } from "./Node";
+import { isSolvable } from "./SolvingAlgorithm";
 import "./App.css";
 
 type CubeCoord = {
@@ -192,7 +193,7 @@ function buildGraph(size: number) {
       if (!neighbor) continue;
 
       if (neighbor.id > node.id) {
-        graph.addEdge(node, neighbor);
+        graph.addUndirectedEdge(node, neighbor);
       }
     }
   }
@@ -211,7 +212,7 @@ function DrawGrid({ graph, edges, hoveredNodePoints, onNodeClick, onNodeHover }:
           {/* if neighbour id is less than current node id, it means its already been checked */}
           if (n.id <= node.id) return null;
           
-          {/* checks if node is an edge node and draws a line */}
+          {/* checks if node is a border node and draws a line */}
           if (node.neighbours.length <= 4 && n.neighbours.length <= 4) {
             return (
             <line
@@ -282,15 +283,25 @@ function DrawGrid({ graph, edges, hoveredNodePoints, onNodeClick, onNodeHover }:
       )}
       
       {/* draws a dot for every node */}
-      {graph.nodes.map((node, i) => (
+      {graph.nodes.map((node, i) => ([
         <circle
           key={i}
           cx={node.value.x}
           cy={node.value.y}
           r=".1"
           fill="black"
-        />
-      ))}
+        />,
+
+        // debugging info
+        <text
+          x={node.value.x + 0.1}
+          y={node.value.y - 0.05}
+          fontSize="0.2"
+          fill="black"
+        >
+          {`(${node.value.q},${node.value.r},${node.value.s}), (${node.value.x},${node.value.y})`}
+        </text>
+      ]))}
     </>
   );
 }
@@ -340,42 +351,48 @@ export default function App() {
     }
   }
 
-  function makeRandomEdges(numOfEdges: number) {
-    const nodes = graph.nodes;
-    if (!nodes.length) return;
+function makeRandomEdges(numOfEdges: number) {
+  const nodes = graph.nodes;
+  if (!nodes.length) return;
 
-    for (let i = 0; i < numOfEdges; i++) {
-      const node = nodes[randomIntFromInterval(0, nodes.length - 1)];
-      const neighbours = node.neighbours;
-      if (!neighbours.length) continue;
+  for (let i = 0; i < numOfEdges; i++) {
+    const node = nodes[randomIntFromInterval(0, nodes.length - 1)];
 
-      const neighbour = neighbours[randomIntFromInterval(0, neighbours.length - 1)];
+    const neighbours = node.neighbours;
 
-      if (node.id === neighbour.id) continue;
+    if (!neighbours.length) continue;
 
-      setEdges(prev => {
-        if (prev.some(e =>
-          (e.nodeA.id === node.id && e.nodeB.id === neighbour.id) ||
-          (e.nodeA.id === neighbour.id && e.nodeB.id === node.id)
-        )) {
-          return prev;
-        }
-        return [...prev, { nodeA: node, nodeB: neighbour }];
-      });
-    }
+    const neighbour =
+      neighbours[randomIntFromInterval(0, neighbours.length - 1)];
+
+    if (node.id === neighbour.id) continue;
+
+    setEdges(prev => {
+      const alreadyExists = prev.some(e =>
+        (e.nodeA.id === node.id && e.nodeB.id === neighbour.id) ||
+        (e.nodeA.id === neighbour.id && e.nodeB.id === node.id)
+      );
+
+      if (alreadyExists) return prev;
+
+      return [...prev, { nodeA: node, nodeB: neighbour }];
+    });
   }
+}
 
   useEffect(() => {
     setEdges([]);
-    makeRandomEdges(3);
+    makeRandomEdges(1);
   }, [gridSize]);
 
   // limits the grid size to 4
-  const clamp = (n: number) => Math.max(2, Math.min(4, Math.floor(n)));
+  const clamp = (n: number) => Math.max(1, Math.min(4, Math.floor(n)));
 
   const R = gridSize + 1;
   const width = 3 * R;
   const height = Math.sqrt(3) * 2 * R;
+
+  console.log(isSolvable(gridSize, edges))
 
   return (
     <div className="app">
