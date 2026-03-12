@@ -2,9 +2,11 @@ import { Node } from "./Node";
 
 export class Graph {
   nodes: Node[];
+  index: Map<string, Node>
 
   constructor() {
     this.nodes = [];
+    this.index = new Map;
   }
 
   addNode(id: number, value: any) {
