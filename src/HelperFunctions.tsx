@@ -28,6 +28,7 @@ export function addCubeCoords(a: CubeCoord, b: CubeCoord): CubeCoord {
 export function findPointsFromNodes (nodeA: Node, nodeB: Node): Point[] {
   const sharedNeighbours: Node[] = []
 
+  // Iterates through nodes to find shared neighbours
   for (const neighbourA of nodeA.neighbours) {
     for (const neighbourB of nodeB.neighbours) {
       if (neighbourA == neighbourB) {
@@ -44,6 +45,7 @@ export function findPointsFromNodes (nodeA: Node, nodeB: Node): Point[] {
   ])
 }
 
+// Returns appropriate fill colour from the direction between nodes
 function getFillFromNodes(nodeA: Node, nodeB: Node): string {
   let fill: string;
 
@@ -61,24 +63,13 @@ function getFillFromNodes(nodeA: Node, nodeB: Node): string {
     }
   }
 
+  // Fill will always be decided but we need ! to let TypeScript know
   return fill!
 }
 
-function inflatePoints(points: Point[], scale: number): Point[] {
-  // Compute polygon center
-  const cx = points.reduce((sum, p) => sum + p.x, 0) / points.length;
-  const cy = points.reduce((sum, p) => sum + p.y, 0) / points.length;
-
-  // Scale each point away from center
-  return points.map(p => ({
-    x: cx + (p.x - cx) * scale,
-    y: cy + (p.y - cy) * scale
-  }));
-}
-
+// Returns the calisson tile polygon using the tile points passed in
 export function DrawCalissonTile({ tile }: { tile: CalissonTile }) {
-  const inflatedPoints = inflatePoints(tile.points, 1.001);
-  const pointsString = inflatedPoints.map(p => `${p.x},${p.y}`).join(" ");
+  const pointsString = tile.points.map(p => `${p.x},${p.y}`).join(" ");
 
   const fill = getFillFromNodes(tile.nodeA, tile.nodeB)
 
@@ -90,6 +81,7 @@ export function DrawCalissonTile({ tile }: { tile: CalissonTile }) {
   );
 }
 
+// Uses floating point comparisons (NOT GOOD) to count shared points in two arrays of points
 function countSharedPoints(a: Point[], b: Point[]): number {
   let count = 0;
 
@@ -104,6 +96,7 @@ function countSharedPoints(a: Point[], b: Point[]): number {
   return count;
 }
 
+// If the points of a tile to be placed shares 3 points with a pre-existing tile - the tile cannot be placed
 export function canPlaceTile(points: Point[], tiles: CalissonTile[]): boolean {
   for (const tile of tiles) {
     const shared = countSharedPoints(tile.points, points);
@@ -115,6 +108,7 @@ export function canPlaceTile(points: Point[], tiles: CalissonTile[]): boolean {
   return true;
 }
 
+// Function used to determine the fill of an interactive node
 export function getNodeFillFromNodes(nodeA: Node, nodeB: Node, adjacentNodes: Node[]): string {
   if (adjacentNodes.length < 2) return "white";
 

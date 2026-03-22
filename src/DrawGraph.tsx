@@ -103,7 +103,7 @@ export function DrawGraph({ graph, edges, hoveredNodeAdjacentNodes, onNodeClick,
         //   fontSize="0.2"
         //   fill="black"
         // >
-        //   {`(${node.value.q},${node.value.r},${node.value.s})`}
+        //   {`(${node.value.q},${node.value.r},${node.value.s}) (${node.value.projectedCoordinates})`}
         // </text>
       ]))}
     </>

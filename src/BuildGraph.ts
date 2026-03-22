@@ -1,5 +1,4 @@
 import { Graph } from "./Graph";
-import { Node } from "./Node";
 import type { NodeValue } from "./Types";
 import { addCubeCoords } from "./HelperFunctions";
 import { CUBE_DIRECTIONS } from "./Constants";
@@ -40,13 +39,9 @@ export function buildGraph(size: number) {
     }
   }
 
-  // initializing a new map / index
-  const index = new Map<string, Node>()
-  graph.index = index
-
   // add each node to the map for easy searching
   for (const node of graph.nodes) {
-    index.set(`${node.value.q},${node.value.r},${node.value.s}`, node);
+    graph.index.set(`${node.value.q},${node.value.r},${node.value.s}`, node);
   }
 
   // iterates through all graph nodes and checks each direction to add an edge between node and neighbour
@@ -54,7 +49,7 @@ export function buildGraph(size: number) {
     for (const dir of CUBE_DIRECTIONS) {
       const target = addCubeCoords({q: node.value.q, r: node.value.r, s: node.value.s}, dir)
 
-      const neighbour = index.get(`${target.q},${target.r},${target.s}`);
+      const neighbour = graph.index.get(`${target.q},${target.r},${target.s}`);
 
       if (!neighbour) continue;
 

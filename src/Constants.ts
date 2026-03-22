@@ -10,4 +10,6 @@ export const CUBE_DIRECTIONS: CubeDirection[] = [
     {q: 1, r: 1, s: 0, direction: "z"},
 ]
 
-export const GRID_SIZE: number = 2
+export const DEFAULT_GRID_SIZE: number = 2
+
+export const NUMBER_OF_EDGES: number = 10

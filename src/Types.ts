@@ -22,7 +22,7 @@ export type CalissonTile = {
   nodeB: Node;
 }
 
-// type for node values (includes 2D coordinates)
+// Type for nodes in 2D grid visualisation
 export type NodeValue = CubeCoord & {
   px: number;
   py: number;
@@ -31,4 +31,13 @@ export type NodeValue = CubeCoord & {
 export type Edge = {
   nodeA: Node;
   nodeB: Node;
+  direction: string;
+}
+
+// 3D cube type for solving algorithm
+export type Cube3D = {
+    id: number;
+    x: number;
+    y: number;
+    z: number;
 }
