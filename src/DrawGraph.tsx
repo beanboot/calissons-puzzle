@@ -1,7 +1,7 @@
 import { Graph } from "./Graph";
 import type { Point, Edge } from "./Types";
 import { Node } from "./Node";
-import { findPointsFromNodes, getNodeFillFromNodes } from "./HelperFunctions";
+import { findTileNodes, findTilePoints, getNodeFillFromNodes } from "./HelperFunctions";
 
 // function to visualise graph
 export function DrawGraph({ graph, edges, hoveredNodeAdjacentNodes, onNodeClick, onNodeHover }:
@@ -72,7 +72,7 @@ export function DrawGraph({ graph, edges, hoveredNodeAdjacentNodes, onNodeClick,
                 strokeOpacity={0.5}
                 fill={getNodeFillFromNodes(node, n, hoveredNodeAdjacentNodes)}
                 onClick={() =>
-                  onNodeClick(findPointsFromNodes(node, n), [node, n])
+                  onNodeClick(findTilePoints(node, n), findTileNodes(node, n))
                 }
                 onMouseEnter={() =>
                   onNodeHover([node, n])

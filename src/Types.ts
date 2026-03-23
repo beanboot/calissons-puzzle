@@ -18,8 +18,8 @@ export type Point = {
 export type CalissonTile = {
   id: string;
   points: Point[];
-  nodeA: Node;
-  nodeB: Node;
+  nodes: Node[];
+  fill: string;
 }
 
 // Type for nodes in 2D grid visualisation
@@ -41,3 +41,5 @@ export type Cube3D = {
     y: number;
     z: number;
 }
+
+export type Difficulties = "EASY" | "MEDIUM" | "HARD"

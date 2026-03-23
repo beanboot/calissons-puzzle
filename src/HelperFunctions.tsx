@@ -24,8 +24,7 @@ export function addCubeCoords(a: CubeCoord, b: CubeCoord): CubeCoord {
   return result
 }
 
-// Returns points from which calisson tile should be drawn
-export function findPointsFromNodes (nodeA: Node, nodeB: Node): Point[] {
+function findSharedNeighbours(nodeA: Node, nodeB: Node): Node[] {
   const sharedNeighbours: Node[] = []
 
   // Iterates through nodes to find shared neighbours
@@ -37,6 +36,20 @@ export function findPointsFromNodes (nodeA: Node, nodeB: Node): Point[] {
     }
   }
 
+  return sharedNeighbours
+}
+
+// Returns tile nodes from two nodes
+export function findTileNodes(nodeA: Node, nodeB: Node): Node[] {
+  const sharedNeighbours = findSharedNeighbours(nodeA, nodeB)
+
+  return ([nodeA, sharedNeighbours[0], nodeB, sharedNeighbours[1]])
+}
+
+// Returns points from which calisson tile should be drawn
+export function findTilePoints(nodeA: Node, nodeB: Node): Point[] {
+  const sharedNeighbours = findSharedNeighbours(nodeA, nodeB)
+
   return ([
     {x: nodeA.value.px, y: nodeA.value.py},
     {x: sharedNeighbours[0].value.px, y: sharedNeighbours[0].value.py},
@@ -46,7 +59,7 @@ export function findPointsFromNodes (nodeA: Node, nodeB: Node): Point[] {
 }
 
 // Returns appropriate fill colour from the direction between nodes
-function getFillFromNodes(nodeA: Node, nodeB: Node): string {
+export function getFillFromNodes(nodeA: Node, nodeB: Node): string {
   let fill: string;
 
   for (const dir of CUBE_DIRECTIONS) {
@@ -71,12 +84,11 @@ function getFillFromNodes(nodeA: Node, nodeB: Node): string {
 export function DrawCalissonTile({ tile }: { tile: CalissonTile }) {
   const pointsString = tile.points.map(p => `${p.x},${p.y}`).join(" ");
 
-  const fill = getFillFromNodes(tile.nodeA, tile.nodeB)
-
   return (
     <polygon
       points={pointsString}
-      fill={fill}
+      fill={tile.fill}
+      opacity={0.8}
     />
   );
 }
