@@ -43,3 +43,8 @@ export type Cube3D = {
 }
 
 export type Difficulties = "EASY" | "MEDIUM" | "HARD"
+
+export type SolvedEdge = {
+  nodeA: Node
+  nodeB: Node
+}

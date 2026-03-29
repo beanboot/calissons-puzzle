@@ -1,9 +1,10 @@
-import { Graph } from "./Graph";
-import type { Cube3D, Edge } from "./Types";
-import { Node } from "./Node";
+import { Graph, SolverGraph } from "./Graph";
+import type { CalissonTile, Cube3D, Edge } from "./Types";
+import { Node, SolverNode } from "./Node";
+import { getTileFromSolverNode } from "./MiscellaneousFunctions";
 
-function buildDAG(n: number): Graph {
-    const graph = new Graph();
+function buildDAG(n: number): SolverGraph {
+    const graph = new SolverGraph();
     let nextId = 0;
 
     // create the back layer
@@ -78,13 +79,13 @@ function buildDAG(n: number): Graph {
     for (const node of graph.nodes) {
         const { x, y, z } = node.value as Cube3D
 
-        const neighbors = [
+        const neighbours = [
             [x + 1, y, z],
             [x, y + 1, z],
             [x, y, z + 1],
         ];
 
-        for (const [nx, ny, nz] of neighbors) {
+        for (const [nx, ny, nz] of neighbours) {
             const target = graph.index.get(`${nx},${ny},${nz}`);
             if (target) {
                 graph.addDirectedEdge(node, target)
@@ -115,7 +116,7 @@ function isBack(c: Cube3D, n: number): boolean {
     );
 }
 
-function addUnbreakableEdges(graph: Graph, edges: Edge[], n: number) {
+function addUnbreakableEdges(graph: SolverGraph, edges: Edge[], n: number) {
     for (const edge of edges) {
         if (edge.direction === "z") {
             addZAxisEdges(graph, edge.nodeA, n)
@@ -129,7 +130,7 @@ function addUnbreakableEdges(graph: Graph, edges: Edge[], n: number) {
     }
 }
 
-function addZAxisEdges(graph: Graph, node: Node, n: number) {
+function addZAxisEdges(graph: SolverGraph, node: Node, n: number) {
     for (let k = -1; k <= n; k++) {
         const Lk = graph.index.get(`${node.value.q + k},${node.value.r + k - 1},${node.value.s + k}`)
         const Rk = graph.index.get(`${node.value.q + k - 1},${node.value.r + k},${node.value.s + k}`)
@@ -137,16 +138,16 @@ function addZAxisEdges(graph: Graph, node: Node, n: number) {
         const BkPlus1 = graph.index.get(`${node.value.q + k},${node.value.r + k},${node.value.s + k + 1}`)
 
         if (Fk && BkPlus1) {
-            graph.addUndirectedEdge(Fk, BkPlus1)
+            graph.addUnbreakableEdge(Fk, BkPlus1)
         }
 
         if (Lk && Rk) {
-            graph.addUndirectedEdge(Lk, Rk)
+            graph.addUnbreakableEdge(Lk, Rk)
         }
     }
 }
 
-function addYAxisEdges(graph: Graph, node: Node, n: number) {
+function addYAxisEdges(graph: SolverGraph, node: Node, n: number) {
     for (let k = -1; k <= n; k++) {
         const Lk = graph.index.get(`${node.value.q + k - 1},${node.value.r + k},${node.value.s + k}`)
         const Rk = graph.index.get(`${node.value.q + k},${node.value.r + k},${node.value.s + k - 1}`)
@@ -154,16 +155,16 @@ function addYAxisEdges(graph: Graph, node: Node, n: number) {
         const BkPlus1 = graph.index.get(`${node.value.q + k},${node.value.r + k + 1},${node.value.s + k}`)
 
         if (Fk && BkPlus1) {
-            graph.addUndirectedEdge(Fk, BkPlus1)
+            graph.addUnbreakableEdge(Fk, BkPlus1)
         }
 
         if (Lk && Rk) {
-            graph.addUndirectedEdge(Lk, Rk)
+            graph.addUnbreakableEdge(Lk, Rk)
         }
     }
 }
 
-function addXAxisEdges(graph: Graph, node: Node, n: number) {
+function addXAxisEdges(graph: SolverGraph, node: Node, n: number) {
     for (let k = -1; k <= n; k++) {
         const Lk = graph.index.get(`${node.value.q + k},${node.value.r + k - 1},${node.value.s + k}`)
         const Rk = graph.index.get(`${node.value.q + k},${node.value.r + k},${node.value.s + k - 1}`)
@@ -171,18 +172,19 @@ function addXAxisEdges(graph: Graph, node: Node, n: number) {
         const BkPlus1 = graph.index.get(`${node.value.q + k + 1},${node.value.r + k},${node.value.s + k}`)
 
         if (Fk && BkPlus1) {
-            graph.addUndirectedEdge(Fk, BkPlus1)
+            graph.addUnbreakableEdge(Fk, BkPlus1)
         }
 
         if (Lk && Rk) {
-            graph.addUndirectedEdge(Lk, Rk)
+            graph.addUnbreakableEdge(Lk, Rk)
         }
     }
 }
 
-function frontReachesBack(graph: Graph, n: number): boolean {
-    const visited = new Set<Node>()
-    const queue: Node[] = []
+// Uses BFS to check connectivity from front to back, returns true if the front set connects to back
+function frontReachesBack(graph: SolverGraph, n: number): boolean {
+    const visited = new Set<SolverNode>()
+    const queue: SolverNode[] = []
 
     // initialize queue with all front cubes
     for (const node of graph.nodes) {
@@ -204,7 +206,14 @@ function frontReachesBack(graph: Graph, n: number): boolean {
             return true
         }
 
-        for (const neighbour of current.neighbours) {
+        for (const neighbour of current.outEdges) {
+            if (!visited.has(neighbour)) {
+                visited.add(neighbour)
+                queue.push(neighbour)
+            }
+        }
+
+        for (const neighbour of current.unbreakableEdges) {
             if (!visited.has(neighbour)) {
                 visited.add(neighbour)
                 queue.push(neighbour)
@@ -221,4 +230,68 @@ export function isSolvable(edges: Edge[], n: number): boolean {
     addUnbreakableEdges(graph, edges, n)
 
     return !frontReachesBack(graph, n)
+}
+
+// Uses BFS to return the cube nodes connected to the back set
+function connectivityFromBack(graph: SolverGraph, n: number): Set<SolverNode> {
+    const visited = new Set<SolverNode>()
+    const queue: SolverNode[] = []
+
+    // initialize queue with all back cubes
+    for (const node of graph.nodes) {
+        const cube = node.value as Cube3D;
+
+        if (isBack(cube, n)) {
+            visited.add(node)
+            queue.push(node)
+        }
+    }
+
+    // breadth first search
+    while (queue.length > 0) {
+        const current = queue.shift()!
+
+        for (const neighbour of current.inEdges) {
+            if (!visited.has(neighbour)) {
+                visited.add(neighbour)
+                queue.push(neighbour)
+            }
+        }
+
+        for (const neighbour of current.unbreakableEdges) {
+            if (!visited.has(neighbour)) {
+                visited.add(neighbour)
+                queue.push(neighbour)
+            }
+        }
+    }
+
+    return visited
+}
+
+export function solvePuzzle(edges: Edge[], graph: Graph, n: number): CalissonTile[] {
+    const DAG = buildDAG(n)
+    addUnbreakableEdges(DAG, edges, n)
+
+    // Calculates the low set of DAG nodes underneath the DAG cut
+    const lowSet = connectivityFromBack(DAG, n)
+
+    const tiles: CalissonTile[] = []
+
+    for (const node of lowSet) {
+        for (const neighbour of node.outEdges) {
+            // If node is above the DAG cut, push tile of corresponding direction
+            if (!lowSet.has(neighbour)) {
+                if (neighbour.value.x - node.value.x === 1) {
+                    tiles.push(getTileFromSolverNode(node, "x", graph, n)!)
+                } else if (neighbour.value.y - node.value.y === 1) {
+                    tiles.push(getTileFromSolverNode(node, "y", graph, n)!)
+                } else if (neighbour.value.z - node.value.z === 1) {
+                    tiles.push(getTileFromSolverNode(node, "z", graph, n)!)
+                }
+            }
+        }
+    }
+
+    return tiles
 }

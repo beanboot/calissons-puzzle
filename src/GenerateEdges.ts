@@ -1,17 +1,17 @@
 import { CUBE_DIRECTIONS } from "./Constants";
 import type { Graph } from "./Graph";
-import { addCubeCoords, randomIntFromInterval } from "./HelperFunctions";
+import { addCubeCoords, randomInt, mulberry32 } from "./MiscellaneousFunctions";
 import { isSolvable } from "./SolvingAlgorithm";
 import type { Edge } from "./Types";
 
-function generateRandomEdges(graph: Graph, numOfEdges: number): Edge[] {
+function generateRandomEdges(graph: Graph, numOfEdges: number, rng: () => number): Edge[] {
   const edges: Edge[] = []
 
   while (edges.length < numOfEdges) {
 
     // Generates a random node and a random direction from said node
-    const randomNode = graph.nodes[randomIntFromInterval(0, graph.nodes.length - 1)]
-    const randomDirection = CUBE_DIRECTIONS[randomIntFromInterval(0, 2)]
+    const randomNode = graph.nodes[randomInt(rng, 0, graph.nodes.length - 1)]
+    const randomDirection = CUBE_DIRECTIONS[randomInt(rng, 0, 2)]
 
     const randomNodeTarget = addCubeCoords(
       {q: randomNode.value.q, r: randomNode.value.r, s: randomNode.value.s},
@@ -40,11 +40,13 @@ function generateRandomEdges(graph: Graph, numOfEdges: number): Edge[] {
   return edges
 }
 
-export function generateSolvableEdges(graph: Graph, numOfEdges: number, n: number): Edge[] {
+export function generateSolvableEdges(graph: Graph, numOfEdges: number, n: number, seed?: number): Edge[] {
+   const rng = seed !== undefined ? mulberry32(seed) : Math.random
+
   let edges: Edge[]
 
   do {
-    edges = generateRandomEdges(graph, numOfEdges)
+    edges = generateRandomEdges(graph, numOfEdges, rng)
   } while (!isSolvable(edges, n))
 
   return edges

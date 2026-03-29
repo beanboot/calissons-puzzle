@@ -1,6 +1,6 @@
 import { Graph } from "./Graph";
 import type { NodeValue } from "./Types";
-import { addCubeCoords } from "./HelperFunctions";
+import { addCubeCoords } from "./MiscellaneousFunctions";
 import { CUBE_DIRECTIONS } from "./Constants";
 
 // graph building function
