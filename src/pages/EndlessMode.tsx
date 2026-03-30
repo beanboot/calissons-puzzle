@@ -3,7 +3,7 @@ import type { Point, Edge, CalissonTile, Difficulties } from "../Types"
 import { DrawCalissonTile, canPlaceTile, getFillFromNodes, formatTime } from "../MiscellaneousFunctions"
 import { Node } from "../Node"
 import { DrawInteractiveGrid } from "../DrawInteractiveGrid"
-import { buildGraph } from "../BuildGraph"
+import { build2DGraph } from "../Build2DGraph"
 import "../App.css"
 import { generateSolvableEdges } from "../GenerateEdges"
 import { Container, Dropdown, DropdownButton, Badge, Row, Col, Button } from "react-bootstrap"
@@ -46,7 +46,7 @@ export default function EndlessModePage() {
     const [hoveredNodeAdjacentNodes, setHoveredNodeAdjacentNodes] = useState<Node[]>([])
 
     // Memoized graph will only be redrawn if grid size changes
-    const graph = useMemo(() => buildGraph(gridSize), [gridSize])
+    const graph = useMemo(() => build2DGraph(gridSize), [gridSize])
 
     // Function to place tiles when node is clicked
     function handleNodeClick(points: Point[], nodes: Node[]) {

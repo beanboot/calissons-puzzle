@@ -48,3 +48,11 @@ export type SolvedEdge = {
   nodeA: Node
   nodeB: Node
 }
+
+// Used for daily mode to retain information when switching difficulties
+export type DifficultyState = {
+    tileIDs: string[]
+    isSolved: boolean
+    startTime: number | null
+    elapsedTime: number
+}

@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo, useRef } from "react"
-import type { Point, Edge, CalissonTile, Difficulties } from "../Types"
-import { DrawCalissonTile, canPlaceTile, getFillFromNodes, formatTime, getDailySeed } from "../MiscellaneousFunctions"
+import { useState, useEffect, useMemo } from "react"
+import type { Point, Edge, Difficulties, DifficultyState } from "../Types"
+import { DrawCalissonTile, canPlaceTile, getFillFromNodes, formatTime, getDailySeed, getTilesFromIDs, getIDsFromTiles } from "../MiscellaneousFunctions"
 import { Node } from "../Node"
 import { DrawInteractiveGrid } from "../DrawInteractiveGrid"
-import { buildGraph } from "../BuildGraph"
+import { build2DGraph } from "../Build2DGraph"
 import "../App.css"
 import { generateSolvableEdges } from "../GenerateEdges"
 import { Container, Badge, Row, Col, Button } from "react-bootstrap"
@@ -20,12 +20,8 @@ export default function DailyModePage() {
     // Initialise the grid size state to the default size constant
     const [gridSize, setGridSize] = useState(2)
 
-    const wasSolvedRef = useRef(false)
-
-    const [isSolved, setIsSolved] = useState(false)
-
-    // Initialise empty tiles state
-    const [tiles, setTiles] = useState<CalissonTile[]>([])
+    // Memoized graph will only be redrawn if grid size changes
+    const graph = useMemo(() => build2DGraph(gridSize), [gridSize])
 
     // Initialise empty edges state
     const [edges, setEdges] = useState<Edge[]>([])
@@ -34,42 +30,83 @@ export default function DailyModePage() {
     const [difficultySelected, setDifficultSelected] = useState(false)
     const [difficulty, setDifficulty] = useState<Difficulties>("EASY")
 
-    // Timer states
-    const [startTime, setStartTime] = useState<number | null>(null)
-    const [elapsedTime, setElapsedTime] = useState<number>(0)
+    // Record state that links puzzle information to its respective difficulty (and grabs saved data from local storage)
+    const [difficultyStates, setDifficultyStates] = useState<Record<Difficulties, DifficultyState>>(() => {
+        const saved = localStorage.getItem("calissonDailyState")
 
+        // Default state for each difficulty
+        const defaultState = {
+            EASY: { tileIDs: [], isSolved: false, startTime: null, elapsedTime: 0 },
+            MEDIUM: { tileIDs: [], isSolved: false, startTime: null, elapsedTime: 0 },
+            HARD: { tileIDs: [], isSolved: false, startTime: null, elapsedTime: 0 }
+        }
+
+        if (!saved) return defaultState
+
+        try {
+            const parsed = JSON.parse(saved)
+
+            // Reset saved data on a new day
+            if (parsed.date !== new Date().toDateString()) {
+                return defaultState
+            }
+
+            return parsed.data
+        } catch {
+            return defaultState
+        }
+    })
+
+    // Saves current difficulty state in local storage
+    useEffect(() => {
+        const payload = {
+            date: new Date().toDateString(),
+            data: difficultyStates
+        }
+
+        localStorage.setItem("calissonDailyState", JSON.stringify(payload))
+    }, [difficultyStates])
+
+    // Helper function to update current difficulty state
+    function updateCurrentState(updater: (prev: DifficultyState) => DifficultyState) {
+        setDifficultyStates(prev => ({
+            ...prev,
+            [difficulty]: updater(prev[difficulty])
+        }))
+    }
+
+    // Get variables from current state
+    const currentState = difficultyStates[difficulty]
+    const tiles = getTilesFromIDs(currentState.tileIDs, graph)
+    const isSolved = currentState.isSolved
+
+    // Navigation variable for React Routing
     const navigate = useNavigate()
 
     // Initialise state for storing adjacent nodes to any node being hovered by user
     const [hoveredNodeAdjacentNodes, setHoveredNodeAdjacentNodes] = useState<Node[]>([])
 
-    // Memoized graph will only be redrawn if grid size changes
-    const graph = useMemo(() => buildGraph(gridSize), [gridSize])
-
     // Function to place tiles when node is clicked
     function handleNodeClick(points: Point[], nodes: Node[]) {
         const id = nodes.map(p => `${p.value.q},${p.value.r},${p.value.s}`).join("|")
 
-        setTiles(prevTiles => {
+        updateCurrentState(prev => {
+            const prevTiles = getTilesFromIDs(prev.tileIDs, graph)
+
             const tileExists = prevTiles.find(tile => tile.id === id)
 
+            let newTileIDs
             if (tileExists) {
-                return prevTiles.filter(tile => tile.id !== id)
-            }
-
-            if (!canPlaceTile(points, prevTiles)) {
-                return prevTiles
-            }
-
-            return [
-                ...prevTiles,
-                {
-                    id,
-                    points,
-                    nodes,
-                    fill: getFillFromNodes(nodes[0], nodes[2])
+                newTileIDs = getIDsFromTiles(prevTiles.filter(tile => tile.id !== id))
+            } else {
+                if (!canPlaceTile(points, prevTiles)) {
+                    return prev
                 }
-            ]
+
+                newTileIDs = getIDsFromTiles([...prevTiles, { id, points, nodes, fill: getFillFromNodes(nodes[0], nodes[2]) }])
+            }
+
+            return {...prev, tileIDs: newTileIDs}
         })
     }
 
@@ -103,32 +140,35 @@ export default function DailyModePage() {
         }
 
         setDifficultSelected(true)
-
-        setStartTime(Date.now())
-        setElapsedTime(0)
     }
 
+    // Effect used to generate new seeded edges when the difficulty changes
     useEffect(() => {
         setEdges(generateSolvableEdges(graph, numberOfEdges, gridSize, getDailySeed(difficulty)))
-        setTiles([])
-        setIsSolved(false)
         setHoveredNodeAdjacentNodes([])
-        wasSolvedRef.current = false
+
+        // Starts timer if start time is null and the difficulty has been selected
+        if (!currentState.startTime && difficultySelected) {
+            updateCurrentState (prev => {
+                return {...prev, startTime: Date.now(), elapsedTime: 0}
+            })
+        }
     }, [difficulty])
 
     // Checks if puzzle is solved when tiles array changes
     useEffect(() => {
         const solved = isPuzzleSolved(tiles, edges, gridSize)
 
-        if (solved && !wasSolvedRef.current) {
-            setIsSolved(true)
+        if (solved && !isSolved) {
+            updateCurrentState(prev => {
+                let newElapsedTime = 0
+                if (currentState.elapsedTime === 0 && currentState.startTime) {
+                    newElapsedTime = Date.now() - currentState.startTime
+                }
 
-            if (startTime) {
-                setElapsedTime(Date.now() - startTime) // Stop timer
-            }
+                return {...prev, isSolved: true, elapsedTime: newElapsedTime}
+            })
         }
-
-        wasSolvedRef.current = solved
     }, [tiles])
 
     const R = gridSize + 1
@@ -186,7 +226,9 @@ export default function DailyModePage() {
                             variant="outline-primary"
                             size="sm"
                             disabled={isSolved}
-                            onClick={() => setTiles(solvePuzzle(edges, graph, gridSize))}
+                            onClick={() => updateCurrentState(prev => {
+                                return {...prev, tileIDs: getIDsFromTiles(solvePuzzle(edges, graph, gridSize))}})
+                            }
                         >
                             Auto Solve Puzzle
                         </Button>
@@ -196,7 +238,7 @@ export default function DailyModePage() {
                             size="sm"
                             onClick={() => setDifficultSelected(false)}
                         >
-                            Select Difficulty
+                            Switch Difficulty
                         </Button>
                     </Col>
 
@@ -241,7 +283,9 @@ export default function DailyModePage() {
 
                 <Row className="bottom-buttons ibm-plex-serif-regular">
                     <Col>
-                        <Button disabled={tiles.length === 0 || isSolved} onClick={() => setTiles([])}>
+                        <Button disabled={tiles.length === 0 || isSolved} onClick={() => updateCurrentState(prev => {
+                            return {...prev, tileIDs: []}
+                        })}>
                             Reset
                         </Button>
                     </Col>
@@ -249,7 +293,7 @@ export default function DailyModePage() {
                     <Col>
                         {isSolved && (
                             <Badge bg="success">
-                                Time: {formatTime(elapsedTime)}
+                                Time: {formatTime(currentState.elapsedTime)}
                             </Badge>
                         )}               
                     </Col>

@@ -4,7 +4,7 @@ import { addCubeCoords } from "./MiscellaneousFunctions";
 import { CUBE_DIRECTIONS } from "./Constants";
 
 // graph building function
-export function buildGraph(size: number) {
+export function build2DGraph(size: number) {
   // initialize graph
   const graph = new Graph();
 
