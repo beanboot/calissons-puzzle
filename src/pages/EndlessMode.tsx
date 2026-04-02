@@ -6,10 +6,11 @@ import { DrawInteractiveGrid } from "../DrawInteractiveGrid"
 import { build2DGraph } from "../Build2DGraph"
 import "../App.css"
 import { generateSolvableEdges } from "../GenerateEdges"
-import { Container, Dropdown, DropdownButton, Badge, Row, Col, Button } from "react-bootstrap"
+import { Container, Dropdown, DropdownButton, Row, Col, Button, Modal } from "react-bootstrap"
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { isPuzzleSolved } from "../IsPuzzleSolved"
 import { FaRegQuestionCircle } from "react-icons/fa";
+import { IoMdExit } from "react-icons/io";
 import { useWindowSize } from 'react-use'
 import Confetti from 'react-confetti'
 import { solvePuzzle } from "../SolvingAlgorithm"
@@ -25,6 +26,7 @@ export default function EndlessModePage() {
     const wasSolvedRef = useRef(false)
 
     const [isSolved, setIsSolved] = useState(false)
+    const [autoSolved, setAutoSolved] = useState(false)
 
     // Initialise empty tiles state
     const [tiles, setTiles] = useState<CalissonTile[]>([])
@@ -39,6 +41,8 @@ export default function EndlessModePage() {
     // Timer states
     const [startTime, setStartTime] = useState<number | null>(null)
     const [elapsedTime, setElapsedTime] = useState<number>(0)
+
+    const [showTutorial, setShowTutorial] = useState(false)
 
     const navigate = useNavigate()
 
@@ -88,6 +92,7 @@ export default function EndlessModePage() {
         setEdges(generateSolvableEdges(graph, numberOfEdges, gridSize))
         setTiles([])
         setIsSolved(false)
+        setAutoSolved(false)
         setHoveredNodeAdjacentNodes([])
         wasSolvedRef.current = false
 
@@ -96,11 +101,12 @@ export default function EndlessModePage() {
         setElapsedTime(0)
     }
 
-    // Generates puzzle if gridSize or graph changes
+    // Generates puzzle if gridSize or graph changes (probably due to difficulty change)
     useEffect(() => {
         if (!isSolved) {
             setEdges(generateSolvableEdges(graph, numberOfEdges, gridSize))
             setTiles([])
+            setAutoSolved(false)
 
             // Start timer
             setStartTime(Date.now())
@@ -113,7 +119,7 @@ export default function EndlessModePage() {
         const solved = isPuzzleSolved(tiles, edges, gridSize)
 
         if (solved && !wasSolvedRef.current) {
-            setPuzzlesSolved(prev => prev + 1)
+            if (!autoSolved) setPuzzlesSolved(prev => prev + 1)
             setIsSolved(true)
 
             if (startTime) {
@@ -141,7 +147,6 @@ export default function EndlessModePage() {
                 break
         }
 
-        setPuzzlesSolved(0)
         setIsSolved(false)
         setHoveredNodeAdjacentNodes([])
         wasSolvedRef.current = false
@@ -154,7 +159,17 @@ export default function EndlessModePage() {
     const { width, height } = useWindowSize()
 
     return (
-        <Container fluid className="app">
+        <Container fluid className="page ibm-plex-serif-semibold">
+            {/* Tutorial modal screen */}
+            <Modal show={showTutorial} onHide={() => setShowTutorial(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Tutorial</Modal.Title>
+                </Modal.Header>
+
+                <Modal.Body className="text-center">
+                    How to play...
+                </Modal.Body>
+            </Modal>
 
             {/* Draws confetti if puzzle is solved */}
             {isSolved && (
@@ -165,35 +180,38 @@ export default function EndlessModePage() {
                 />
             )}
 
-            <Row className="top-buttons fixed-top ibm-plex-serif-regular">
-                <Col>
-                    <Button variant="outline-primary" size="sm" onClick={() => navigate("/")}>
-                        Switch to Daily Mode
-                    </Button>
-
-                    <Button
-                        variant="outline-primary"
-                        size="sm"
-                        disabled={isSolved}
-                        onClick={() => setTiles(solvePuzzle(edges, graph, gridSize))}
-                    >
-                        Auto Solve Puzzle
+            <Row className="d-flex justify-content-center align-items-start top-row flex-nowrap">
+                <Col className="d-flex flex-column align-items-start gap-1">
+                    <Button onClick={() => navigate("/")}>
+                        Daily Mode <IoMdExit className="icon" />
                     </Button>
                 </Col>
 
-                <Col className="d-flex justify-content-end">
-                    <Button variant="outline-primary" size="sm">
-                        <FaRegQuestionCircle />
+                <Col className="d-flex flex-column align-self-center">
+                    <h1>The Calissons Puzzle</h1>
+                </Col>
+
+                <Col className="d-flex flex-column align-items-end gap-1">
+                    <Button onClick={() => setShowTutorial(true)}>
+                        How to play <FaRegQuestionCircle className="icon" />
+                    </Button>
+
+                    <Button
+                        disabled={isSolved}
+                        onClick={() => {
+                            setTiles(solvePuzzle(edges, graph, gridSize))
+                            setAutoSolved(true)
+                        }}
+                    >
+                        Reveal Solution
                     </Button>
                 </Col>
             </Row>
 
-            <h1 className="h1 ibm-plex-serif-semibold">The Calissons Puzzle</h1>
-
             <svg
                 viewBox={`${-viewboxWidth / 2} ${-viewboxHeight / 2} ${viewboxWidth} ${viewboxHeight}`}
                 preserveAspectRatio="xMidYMid meet"
-                className="board"
+                className="svg"
             >
                 <g transform="scale(2)">
                     {tiles.map(tile => (
@@ -220,39 +238,33 @@ export default function EndlessModePage() {
                 </g>
             </svg>
 
-            <Row className="bottom-buttons ibm-plex-serif-regular">
-                <Col>
-                    <DropdownButton id="difficulty-dropdown" title={difficulty}>
-                        <Dropdown.Item onClick={() => setDifficulty("EASY")}>Easy</Dropdown.Item>
-                        <Dropdown.Item onClick={() => setDifficulty("MEDIUM")}>Medium</Dropdown.Item>
-                        <Dropdown.Item onClick={() => setDifficulty("HARD")}>Hard</Dropdown.Item>
-                    </DropdownButton>
-                </Col>
+            <div className="d-flex justify-content-center align-items-center gap-2 bottom-row flex-nowrap">
+                <DropdownButton id="difficulty-dropdown" title={difficulty}>
+                    <Dropdown.Item onClick={() => setDifficulty("EASY")}>Easy</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setDifficulty("MEDIUM")}>Medium</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setDifficulty("HARD")}>Hard</Dropdown.Item>
+                </DropdownButton>
 
-                <Col>
-                    <Button disabled={tiles.length === 0 || isSolved} onClick={() => setTiles([])}>
+                <Button variant="outline-success" className="not-clickable">
+                    Streak: {puzzlesSolved}
+                </Button>
+
+                {!isSolved && (
+                    <Button disabled={tiles.length === 0} onClick={() => setTiles([])}>
                         Reset
                     </Button>
-                </Col>
+                )}
 
-                <Col>
-                    <Button disabled={!isSolved} onClick={handleNextPuzzle}>
-                        Next Puzzle
+                {isSolved && (
+                    <Button variant="outline-success" className="not-clickable">
+                        Time: {formatTime(elapsedTime)}
                     </Button>
-                </Col>
+                )}
 
-                <Col>
-                    <Badge bg="primary">Solved Puzzles: {puzzlesSolved}</Badge>
-                </Col>
-
-                <Col>
-                    {isSolved && (
-                        <Badge bg="success">
-                            Time: {formatTime(elapsedTime)}
-                        </Badge>
-                    )}               
-                </Col>
-            </Row>
+                <Button disabled={!isSolved} onClick={handleNextPuzzle}>
+                    Next Puzzle
+                </Button>
+            </div>
         </Container>
     )
 }

@@ -1,5 +1,5 @@
 import type { CubeCoord, Point, CalissonTile, Difficulties } from "./Types";
-import { CUBE_DIRECTIONS } from "./Constants";
+import { CALISSON_BLUE, CALISSON_RED, CALISSON_YELLOW, CUBE_DIRECTIONS } from "./Constants";
 import { Node, SolverNode } from "./Node";
 import { Graph } from "./Graph";
 
@@ -68,11 +68,11 @@ export function getFillFromNodes(nodeA: Node, nodeB: Node): string {
 
     if(target.q === nodeB.value.q && target.r === nodeB.value.r && target.s === nodeB.value.s) {
       if (dir.direction === "x") {
-        fill = "blue";
+        fill = CALISSON_BLUE;
       } else if (dir.direction === "y") {
-        fill = "red";
+        fill = CALISSON_RED;
       } else if (dir.direction === "z") {
-        fill = "yellow";
+        fill = CALISSON_YELLOW;
       };
     };
   };
@@ -91,7 +91,7 @@ export function DrawCalissonTile({ tile }: { tile: CalissonTile }) {
       fill={tile.fill}
       stroke={tile.fill}
       strokeWidth={0.02}
-      opacity={0.8}
+      opacity={1}
     />
   );
 }
@@ -167,7 +167,7 @@ export function getTileFromSolverNode(solverNode: SolverNode, direction: string,
 
     points = findTilePoints(nodeA, nodeB);
     nodes = findTileNodes(nodeA, nodeB);
-    fill = "blue";
+    fill = CALISSON_BLUE;
   };
 
   // Draws red tile
@@ -179,7 +179,7 @@ export function getTileFromSolverNode(solverNode: SolverNode, direction: string,
 
     points = findTilePoints(nodeA, nodeB);
     nodes = findTileNodes(nodeA, nodeB);
-    fill = "red";
+    fill = CALISSON_RED;
   };
 
   // Draws yellow tile
@@ -191,7 +191,7 @@ export function getTileFromSolverNode(solverNode: SolverNode, direction: string,
 
     points = findTilePoints(nodeA, nodeB);
     nodes = findTileNodes(nodeA, nodeB);
-    fill = "yellow";
+    fill = CALISSON_YELLOW;
   };
 
   if (!nodes || !points || !fill) return null;
