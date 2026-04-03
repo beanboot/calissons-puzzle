@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react"
 import type { Point, Edge, Difficulties, DifficultyState } from "../Types"
-import { DrawCalissonTile, canPlaceTile, getFillFromNodes, getDailySeed, getTilesFromIDs, getIDsFromTiles } from "../MiscellaneousFunctions"
+import { DrawCalissonTile, canPlaceTile, getFillFromNodes, getDailySeed, getTilesFromIDs, getIDsFromTiles, returnDate, formatTime } from "../MiscellaneousFunctions"
 import { Node } from "../Node"
 import { DrawInteractiveGrid } from "../DrawInteractiveGrid"
 import { build2DGraph } from "../Build2DGraph"
@@ -17,6 +17,7 @@ import Confetti from 'react-confetti'
 import { solvePuzzle } from "../SolvingAlgorithm"
 import { DrawSolvedGrid } from "../DrawSolvedGrid"
 import { useNavigate } from "react-router-dom"
+import { TutorialModal } from "../Modals"
 
 export default function DailyModePage() {
     // Initialise the grid size state to the default size constant
@@ -42,9 +43,9 @@ export default function DailyModePage() {
 
         // Default state for each difficulty
         const defaultState = {
-            EASY: { tileIDs: [], isSolved: false, startTime: null, elapsedTime: 0 },
-            MEDIUM: { tileIDs: [], isSolved: false, startTime: null, elapsedTime: 0 },
-            HARD: { tileIDs: [], isSolved: false, startTime: null, elapsedTime: 0 }
+            EASY: { tileIDs: [], isSolved: false, autoSolved: false, startTime: null, elapsedTime: 0 },
+            MEDIUM: { tileIDs: [], isSolved: false, autoSolved: false, startTime: null, elapsedTime: 0 },
+            HARD: { tileIDs: [], isSolved: false, autoSolved: false, startTime: null, elapsedTime: 0 }
         }
 
         if (!saved) return defaultState
@@ -85,6 +86,7 @@ export default function DailyModePage() {
     const currentState = difficultyStates[difficulty]
     const tiles = getTilesFromIDs(currentState.tileIDs, graph)
     const isSolved = currentState.isSolved
+    const autoSolved = currentState.autoSolved
 
     // Navigation variable for React Routing
     const navigate = useNavigate()
@@ -194,6 +196,27 @@ export default function DailyModePage() {
         return () => clearTimeout(timer)
     }, [isSolved, difficultySelected])
 
+    // Copy to clipboard button function
+    function CopyButton({ text }: { text: string }) {
+        const [copied, setCopied] = useState(false)
+
+        const handleCopy = async () => {
+            await navigator.clipboard.writeText(text)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 1500)
+        }
+
+        return (
+            <Button onClick={handleCopy}>
+                {copied ? "Copied!" : (
+                    <>
+                    Copy to Clipboard <FaRegClipboard className="icon" />
+                    </>
+                )}
+            </Button>
+        )
+    }
+
     const R = gridSize + 1
     const svgWidth = 3 * R
     const svgHeight = Math.sqrt(3) * 2 * R
@@ -203,17 +226,31 @@ export default function DailyModePage() {
     return (
         <Container fluid className="page ibm-plex-serif-semibold">
             {/* Results modal screen */}
-            <Modal show={showResults} onHide={() => setShowResults(false)} centered>
+            <Modal className="ibm-plex-serif-semibold" show={showResults} onHide={() => setShowResults(false)} centered>
                 <Modal.Header closeButton>
-                    <Modal.Title>Nicely done!</Modal.Title>
+                    <Modal.Title>
+                        {autoSolved ? "Better luck next time!" : "Nicely done!"}
+                    </Modal.Title>
                 </Modal.Header>
 
-                <Modal.Body className="text-center">
-                    Date, Difficulty, Time, etc...
+                <Modal.Body className="text-center ibm-plex-serif-regular">
+                    <Row>
+                        <Col>
+                            Calissons Puzzle {returnDate()} {difficulty}:
+                        </Col>
+                    </Row>
+
+                    <Row>
+                        <Col>
+                            {autoSolved ? "RESIGNED" : formatTime(currentState.elapsedTime)}
+                        </Col>
+                    </Row>
                 </Modal.Body>
 
                 <Modal.Footer className="justify-content-center">
-                    <Button>Copy to Clipboard <FaRegClipboard className="icon" /></Button>
+                    <CopyButton 
+                        text={`Calissons Puzzle ${returnDate()} ${difficulty}:\n${autoSolved ? "RESIGNED" : formatTime(currentState.elapsedTime)}`} 
+                    />
 
                     <Button 
                         onClick={() => {
@@ -227,15 +264,7 @@ export default function DailyModePage() {
             </Modal>
 
             {/* Tutorial modal screen */}
-            <Modal show={showTutorial} onHide={() => setShowTutorial(false)} centered>
-                <Modal.Header closeButton>
-                    <Modal.Title>Tutorial</Modal.Title>
-                </Modal.Header>
-
-                <Modal.Body className="text-center">
-                    How to play...
-                </Modal.Body>
-            </Modal>
+            <TutorialModal show={showTutorial} onHide={() => setShowTutorial(false)} />
 
             {!difficultySelected && (
                 <div className="app">
@@ -268,24 +297,33 @@ export default function DailyModePage() {
                             </Col>
                         
                             <Col className="d-flex justify-content-center gap-3">
-                                {/* Buttons are green if solved, orange if timer has started, and blue if not started */}
+                                {/* Buttons are green if solved, orange if timer has started, blue if not started, and red if auto solved */}
                                 <Button 
                                     onClick={() => handleDifficultySelect("EASY")}
-                                    variant={difficultyStates["EASY"].isSolved ? "success" : difficultyStates["EASY"].startTime ? "warning": "outline-primary"}
+                                    variant={difficultyStates["EASY"].autoSolved ? "danger"
+                                        : (difficultyStates["EASY"].isSolved && !difficultyStates["EASY"].autoSolved) ? "success" 
+                                        : difficultyStates["EASY"].startTime ? "warning" 
+                                        : "outline-primary"}
                                 >
                                     Easy
                                 </Button>
 
                                 <Button 
                                     onClick={() => handleDifficultySelect("MEDIUM")}
-                                    variant={difficultyStates["MEDIUM"].isSolved ? "success" : difficultyStates["MEDIUM"].startTime ? "warning": "outline-primary"}
+                                    variant={difficultyStates["MEDIUM"].autoSolved ? "danger"
+                                        : (difficultyStates["MEDIUM"].isSolved && !difficultyStates["MEDIUM"].autoSolved) ? "success" 
+                                        : difficultyStates["MEDIUM"].startTime ? "warning" 
+                                        : "outline-primary"}
                                 >
                                     Medium
                                 </Button>
 
                                 <Button 
                                     onClick={() => handleDifficultySelect("HARD")}
-                                    variant={difficultyStates["HARD"].isSolved ? "success" : difficultyStates["HARD"].startTime ? "warning": "outline-primary"}
+                                    variant={difficultyStates["HARD"].autoSolved ? "danger"
+                                        : (difficultyStates["HARD"].isSolved && !difficultyStates["HARD"].autoSolved) ? "success" 
+                                        : difficultyStates["HARD"].startTime ? "warning" 
+                                        : "outline-primary"}
                                 >
                                     Hard
                                 </Button>
@@ -298,7 +336,7 @@ export default function DailyModePage() {
             {difficultySelected && (
                 <div className="app">
                     {/* Draws confetti if puzzle is solved */}
-                    {isSolved && (
+                    {(isSolved && !autoSolved) && (
                         <Confetti
                             width={width}
                             height={height}
@@ -329,7 +367,7 @@ export default function DailyModePage() {
                             <Button
                                 disabled={isSolved}
                                 onClick={() => updateCurrentState(prev => {
-                                    return {...prev, tileIDs: getIDsFromTiles(solvePuzzle(edges, graph, gridSize))}})
+                                    return {...prev, tileIDs: getIDsFromTiles(solvePuzzle(edges, graph, gridSize)), autoSolved: true}})
                                 }
                             >
                                 Reveal Solution

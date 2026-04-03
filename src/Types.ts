@@ -53,6 +53,7 @@ export type SolvedEdge = {
 export type DifficultyState = {
     tileIDs: string[]
     isSolved: boolean
+    autoSolved: boolean
     startTime: number | null
     elapsedTime: number
 }

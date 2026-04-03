@@ -6,7 +6,7 @@ import { DrawInteractiveGrid } from "../DrawInteractiveGrid"
 import { build2DGraph } from "../Build2DGraph"
 import "../App.css"
 import { generateSolvableEdges } from "../GenerateEdges"
-import { Container, Dropdown, DropdownButton, Row, Col, Button, Modal } from "react-bootstrap"
+import { Container, Dropdown, DropdownButton, Row, Col, Button } from "react-bootstrap"
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { isPuzzleSolved } from "../IsPuzzleSolved"
 import { FaRegQuestionCircle } from "react-icons/fa";
@@ -16,6 +16,7 @@ import Confetti from 'react-confetti'
 import { solvePuzzle } from "../SolvingAlgorithm"
 import { DrawSolvedGrid } from "../DrawSolvedGrid"
 import { useNavigate } from "react-router-dom"
+import { TutorialModal } from "../Modals"
 
 export default function EndlessModePage() {
     // Initialise the grid size state to the default size constant
@@ -161,18 +162,10 @@ export default function EndlessModePage() {
     return (
         <Container fluid className="page ibm-plex-serif-semibold">
             {/* Tutorial modal screen */}
-            <Modal show={showTutorial} onHide={() => setShowTutorial(false)} centered>
-                <Modal.Header closeButton>
-                    <Modal.Title>Tutorial</Modal.Title>
-                </Modal.Header>
-
-                <Modal.Body className="text-center">
-                    How to play...
-                </Modal.Body>
-            </Modal>
+            <TutorialModal show={showTutorial} onHide={() => setShowTutorial(false)} />
 
             {/* Draws confetti if puzzle is solved */}
-            {isSolved && (
+            {(isSolved && !autoSolved) && (
                 <Confetti
                     width={width}
                     height={height}
@@ -201,6 +194,7 @@ export default function EndlessModePage() {
                         onClick={() => {
                             setTiles(solvePuzzle(edges, graph, gridSize))
                             setAutoSolved(true)
+                            setPuzzlesSolved(0)
                         }}
                     >
                         Reveal Solution
@@ -238,7 +232,7 @@ export default function EndlessModePage() {
                 </g>
             </svg>
 
-            <div className="d-flex justify-content-center align-items-center gap-2 bottom-row flex-nowrap">
+            <div className="d-flex justify-content-center align-items-top gap-2 bottom-row flex-nowrap">
                 <DropdownButton id="difficulty-dropdown" title={difficulty}>
                     <Dropdown.Item onClick={() => setDifficulty("EASY")}>Easy</Dropdown.Item>
                     <Dropdown.Item onClick={() => setDifficulty("MEDIUM")}>Medium</Dropdown.Item>

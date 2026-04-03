@@ -5,13 +5,13 @@ html, body, #root {
 
 h1 {
   text-align: center;
-  
 }
 
 .page {
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .app {
@@ -41,6 +41,22 @@ h1 {
 
 .not-clickable {
   pointer-events: none;
+}
+
+/* Overriding bootstrap danger button colour*/
+.btn.btn-danger {
+  --bs-btn-bg: #ff4141;
+  --bs-btn-border-color: #ff4141;
+  --bs-btn-hover-bg: #c22f2f;
+  --bs-btn-hover-border-color: #c22f2f;
+}
+
+/* Overriding bootstrap warning button colour*/
+.btn.btn-warning {
+  --bs-btn-bg: #f8ff22;
+  --bs-btn-border-color: #f8ff22;
+  --bs-btn-hover-bg: #e3ea19;
+  --bs-btn-hover-border-color: #e3ea19;
 }
 
 .icon {

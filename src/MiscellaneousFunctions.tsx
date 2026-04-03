@@ -299,3 +299,10 @@ export function getIDsFromTiles(tiles: CalissonTile[]): string[] {
 
   return ids
 }
+
+// Returns the date in a DD/MM/YYYY format
+export function returnDate(): string {
+  const today = new Date()
+
+  return(`${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`)
+}
