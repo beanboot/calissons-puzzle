@@ -1,4 +1,4 @@
-import { Modal, Row, Col } from "react-bootstrap"
+import { Modal, Row, Col, Button } from "react-bootstrap"
 import placeTilesGif from "./assets/place_tiles.gif"
 import removeTilesGif from "./assets/remove_tiles.gif"
 import incorrectTiles from "./assets/incorrect_tiling.png"
@@ -23,6 +23,62 @@ export function TutorialModal({
 
             <Modal.Body className="ibm-plex-serif-regular">
                 <Row className="pb-1">
+                    <Col>
+                        <h2 className="text-center">How to win:</h2>
+                    </Col>
+                </Row>
+
+                <Row className="text-center">
+                    <Col>
+                        <h5>The goal is to place tiles such that:</h5>
+                    </Col>
+                </Row>
+
+                <Row className="text-center">
+                    <Col>
+                        1) The entire grid is filled
+                    </Col>
+                </Row>
+
+                <Row className="text-center pt-2">
+                    <Col>
+                        <h5>AND</h5>
+                    </Col>
+                </Row>
+
+                <Row className="text-center">
+                    <Col>
+                        2) Each puzzle edge (black line) is adjacent to tiles of different directions
+                    </Col>
+                </Row>
+
+                <Row>
+                    <Col>
+                        <h3>e.g.</h3>
+                    </Col>
+                </Row>
+
+                <Row className="d-flex align-items-center justify-content-center flex-nowrap pt-2">
+                    <Col className="d-flex justify-content-center">
+                        <img src={incorrectTiles} alt="Incorrect Tiling" height={200} />
+                    </Col>
+
+                    <Col>
+                        <img src={redX} alt="Red X" height={100} />
+                    </Col>
+                </Row>
+
+                <Row className="d-flex align-items-center justify-content-center flex-nowrap">
+                    <Col className="d-flex justify-content-center">
+                        <img src={correctTiles} alt="Correct Tiling" height={200} />
+                    </Col>
+
+                    <Col>
+                        <img src={greenTick} alt="Green Tick" height={100} />
+                    </Col>
+                </Row>
+
+                <Row className="pt-2 pb-1">
                     <Col>
                         <h2 className="text-center">How to place tiles:</h2>
                     </Col>
@@ -74,68 +130,52 @@ export function TutorialModal({
                     </Col>
                 </Row>
 
-                <Row className="pt-5 pb-1">
-                    <Col>
-                        <h2 className="text-center">How to win:</h2>
-                    </Col>
-                </Row>
-
-                <Row className="text-center">
-                    <Col>
-                        <h5>The goal is to place tiles such that:</h5>
-                    </Col>
-                </Row>
-
-                <Row className="text-center">
-                    <Col>
-                        1) The entire grid is filled
-                    </Col>
-                </Row>
-
-                <Row className="text-center pt-2">
-                    <Col>
-                        <h5>AND</h5>
-                    </Col>
-                </Row>
-
-                <Row className="text-center">
-                    <Col>
-                        2) Each puzzle edge is adjacent to tiles of different directions
-                    </Col>
-                </Row>
-
-                <Row>
-                    <Col>
-                        <h3>e.g.</h3>
-                    </Col>
-                </Row>
-
-                <Row className="d-flex align-items-center justify-content-center pt-2">
-                    <Col className="d-flex justify-content-center">
-                        <img src={incorrectTiles} alt="Incorrect Tiling" height={200} />
-                    </Col>
-
-                    <Col>
-                        <img src={redX} alt="Red X" height={100} />
-                    </Col>
-                </Row>
-
-                <Row className="d-flex align-items-center justify-content-center">
-                    <Col className="d-flex justify-content-center">
-                        <img src={correctTiles} alt="Correct Tiling" height={200} />
-                    </Col>
-
-                    <Col>
-                        <img src={greenTick} alt="Green Tick" height={100} />
-                    </Col>
-                </Row>
-
-                <Row className="text-center pt-2">
+                <Row className="text-center pt-4">
                     <Col>
                         <h3>Good Luck and Have Fun!</h3>
                     </Col>
                 </Row>
             </Modal.Body>
+        </Modal>
+    )
+}
+
+type ConfirmationModalProps = {
+  show: boolean
+  onHide: () => void
+  onConfirm: () => void
+  title: string
+  body: string
+}
+
+export function ConfirmationModal({
+    show,
+    onHide,
+    onConfirm,
+    title,
+    body
+}: ConfirmationModalProps) {
+    return (
+        <Modal className="ibm-plex-serif-semibold" show={show} onHide={onHide} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>
+                    {title}
+                </Modal.Title>
+            </Modal.Header>
+
+            <Modal.Body className="ibm-plex-serif-regular">
+                {body}
+            </Modal.Body>
+
+            <Modal.Footer className="d-flex justify-content-center">
+                <Button onClick={onConfirm}>
+                    Yes
+                </Button>
+
+                <Button onClick={onHide}>
+                    No
+                </Button>
+            </Modal.Footer>
         </Modal>
     )
 }

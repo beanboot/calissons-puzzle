@@ -16,7 +16,7 @@ import Confetti from 'react-confetti'
 import { solvePuzzle } from "../SolvingAlgorithm"
 import { DrawSolvedGrid } from "../DrawSolvedGrid"
 import { useNavigate } from "react-router-dom"
-import { TutorialModal } from "../Modals"
+import { TutorialModal, ConfirmationModal } from "../Modals"
 
 export default function EndlessModePage() {
     // Initialise the grid size state to the default size constant
@@ -44,6 +44,7 @@ export default function EndlessModePage() {
     const [elapsedTime, setElapsedTime] = useState<number>(0)
 
     const [showTutorial, setShowTutorial] = useState(false)
+    const [showConfirmation, setShowConfirmation] = useState(false)
 
     const navigate = useNavigate()
 
@@ -100,6 +101,11 @@ export default function EndlessModePage() {
         // Start timer
         setStartTime(Date.now())
         setElapsedTime(0)
+    }
+
+    // Returns true if a tile can be placed on a node, false if not 
+    function canPlaceTileOnNode(points: Point[]): boolean {
+        return canPlaceTile(points, tiles)
     }
 
     // Generates puzzle if gridSize or graph changes (probably due to difficulty change)
@@ -164,6 +170,20 @@ export default function EndlessModePage() {
             {/* Tutorial modal screen */}
             <TutorialModal show={showTutorial} onHide={() => setShowTutorial(false)} />
 
+            {/* Reveal solution confirmation */}
+            <ConfirmationModal 
+                show={showConfirmation} 
+                onHide={() => setShowConfirmation(false)}
+                onConfirm={() => {
+                    setTiles(solvePuzzle(edges, graph, gridSize))
+                    setAutoSolved(true)
+                    setPuzzlesSolved(0)
+                    setShowConfirmation(false)
+                }}
+                title="Are you sure?"
+                body="Auto generating the solution will reset your streak to zero."
+            />
+
             {/* Draws confetti if puzzle is solved */}
             {(isSolved && !autoSolved) && (
                 <Confetti
@@ -191,13 +211,9 @@ export default function EndlessModePage() {
 
                     <Button
                         disabled={isSolved}
-                        onClick={() => {
-                            setTiles(solvePuzzle(edges, graph, gridSize))
-                            setAutoSolved(true)
-                            setPuzzlesSolved(0)
-                        }}
+                        onClick={() => setShowConfirmation(true)}
                     >
-                        Reveal Solution
+                        Generate Solution
                     </Button>
                 </Col>
             </Row>
@@ -220,6 +236,7 @@ export default function EndlessModePage() {
                             hoveredNodeAdjacentNodes={hoveredNodeAdjacentNodes}
                             onNodeClick={handleNodeClick}
                             onNodeHover={handleNodeHover}
+                            canPlaceTileOnNode={canPlaceTileOnNode}
                         />
                     )}
 
@@ -227,6 +244,8 @@ export default function EndlessModePage() {
                         <DrawSolvedGrid
                             tiles={tiles}
                             graph={graph}
+                            edges={edges}
+                            originalEdges={false}
                         />
                     )}
                 </g>

@@ -1,8 +1,13 @@
 import type { Graph } from "./Graph";
 import { returnSharedNodes } from "./MiscellaneousFunctions";
-import type { SolvedEdge, CalissonTile } from "./Types";
+import type { SolvedEdge, CalissonTile, Edge } from "./Types";
 
-export function DrawSolvedGrid({ tiles, graph }: { tiles: CalissonTile[], graph: Graph }) {
+export function DrawSolvedGrid({ tiles, graph, edges, originalEdges }: { 
+    tiles: CalissonTile[], 
+    graph: Graph,
+    edges: Edge[],
+    originalEdges: boolean
+}) {
     const solvedEdges: SolvedEdge[] = []
 
     for (const tileA of tiles) {
@@ -15,8 +20,19 @@ export function DrawSolvedGrid({ tiles, graph }: { tiles: CalissonTile[], graph:
                     (e.nodeA.id === sharedNodes[1].id && e.nodeB.id === sharedNodes[0].id)
                 )
 
+                // Convoluted way of checking if edges are equal, only display previous edges when toggleEdges is true
                 if (!exists) {
-                    solvedEdges.push({nodeA: sharedNodes[0], nodeB: sharedNodes[1]})
+                    if (originalEdges) {
+                        for (const edge of edges) {
+                            if (sharedNodes[0].id === edge.nodeA.id && sharedNodes[1].id === edge.nodeB.id
+                                || sharedNodes[0].id === edge.nodeB.id && sharedNodes[1].id === edge.nodeA.id) 
+                            {
+                                solvedEdges.push({nodeA: sharedNodes[0], nodeB: sharedNodes[1]})
+                            } 
+                        }
+                    } else {
+                        solvedEdges.push({nodeA: sharedNodes[0], nodeB: sharedNodes[1]})
+                    }
                 }
             }
         }

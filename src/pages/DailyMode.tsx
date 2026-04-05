@@ -17,7 +17,7 @@ import Confetti from 'react-confetti'
 import { solvePuzzle } from "../SolvingAlgorithm"
 import { DrawSolvedGrid } from "../DrawSolvedGrid"
 import { useNavigate } from "react-router-dom"
-import { TutorialModal } from "../Modals"
+import { ConfirmationModal, TutorialModal } from "../Modals"
 
 export default function DailyModePage() {
     // Initialise the grid size state to the default size constant
@@ -30,12 +30,15 @@ export default function DailyModePage() {
     const [edges, setEdges] = useState<Edge[]>([])
     const [numberOfEdges, setNumberOfEdges] = useState<number>(4)
 
-    // Boolean states used for results and tutorial modals
+    // Boolean states used for modals
     const [showResults, setShowResults] = useState(false)
-    const [showTutorial, setShowTutorial] = useState(false) 
+    const [showTutorial, setShowTutorial] = useState(false)
+    const [showConfirmation, setShowConfirmation] = useState(false)
 
     const [difficultySelected, setDifficultSelected] = useState(false)
     const [difficulty, setDifficulty] = useState<Difficulties>("EASY")
+
+    const [showOriginalEdges, setShowOriginalEdges] = useState(false)
 
     // Record state that links puzzle information to its respective difficulty (and grabs saved data from local storage)
     const [difficultyStates, setDifficultyStates] = useState<Record<Difficulties, DifficultyState>>(() => {
@@ -125,6 +128,11 @@ export default function DailyModePage() {
         } else {
             setHoveredNodeAdjacentNodes(nodes)
         }
+    }
+
+    // Returns true if a tile can be placed on a node, false if not 
+    function canPlaceTileOnNode(points: Point[]): boolean {
+        return canPlaceTile(points, tiles)
     }
 
     // Called when a difficulty is selected and generates puzzles determined by the date and difficulty
@@ -242,14 +250,14 @@ export default function DailyModePage() {
 
                     <Row>
                         <Col>
-                            {autoSolved ? "RESIGNED" : formatTime(currentState.elapsedTime)}
+                            {autoSolved ? "FAILED" : formatTime(currentState.elapsedTime)}
                         </Col>
                     </Row>
                 </Modal.Body>
 
-                <Modal.Footer className="justify-content-center">
+                <Modal.Footer className="justify-content-center flex-column">
                     <CopyButton 
-                        text={`Calissons Puzzle ${returnDate()} ${difficulty}:\n${autoSolved ? "RESIGNED" : formatTime(currentState.elapsedTime)}`} 
+                        text={`Calissons Puzzle ${returnDate()} ${difficulty}:\n${autoSolved ? "FAILED" : formatTime(currentState.elapsedTime)}`} 
                     />
 
                     <Button 
@@ -265,6 +273,20 @@ export default function DailyModePage() {
 
             {/* Tutorial modal screen */}
             <TutorialModal show={showTutorial} onHide={() => setShowTutorial(false)} />
+
+            {/* Reveal solution confirmation */}
+            <ConfirmationModal 
+                show={showConfirmation} 
+                onHide={() => setShowConfirmation(false)}
+                onConfirm={() => {
+                    updateCurrentState(prev => {
+                        return {...prev, tileIDs: getIDsFromTiles(solvePuzzle(edges, graph, gridSize)), autoSolved: true}
+                    })
+                    setShowConfirmation(false)
+                }}
+                title="Are you sure?"
+                body="Auto generating the solution will count as failing the puzzle."
+            />
 
             {!difficultySelected && (
                 <div className="app">
@@ -284,7 +306,7 @@ export default function DailyModePage() {
                                 How to play <FaRegQuestionCircle className="icon" />
                             </Button>
 
-                            <Button>
+                            <Button disabled={true}>
                                 About <FaRegQuestionCircle className="icon" />
                             </Button>
                         </Col>
@@ -292,8 +314,8 @@ export default function DailyModePage() {
 
                     <div className="flex-grow-1 d-flex justify-content-center align-items-center pb-5">
                         <Row className="d-flex flex-column gap-2">
-                            <Col>
-                                <h1>Select your difficulty:</h1>
+                            <Col className="text-center">
+                                <h2>Select your difficulty:</h2>
                             </Col>
                         
                             <Col className="d-flex justify-content-center gap-3">
@@ -327,6 +349,10 @@ export default function DailyModePage() {
                                 >
                                     Hard
                                 </Button>
+                            </Col>
+
+                            <Col className="ibm-plex-serif-regular text-center">
+                                (Puzzles refresh at midnight)
                             </Col>
                         </Row>
                     </div>
@@ -366,11 +392,9 @@ export default function DailyModePage() {
 
                             <Button
                                 disabled={isSolved}
-                                onClick={() => updateCurrentState(prev => {
-                                    return {...prev, tileIDs: getIDsFromTiles(solvePuzzle(edges, graph, gridSize)), autoSolved: true}})
-                                }
+                                onClick={() => setShowConfirmation(true)}
                             >
-                                Reveal Solution
+                                Generate Solution
                             </Button>
                         </Col>
                     </Row>
@@ -393,6 +417,7 @@ export default function DailyModePage() {
                                     hoveredNodeAdjacentNodes={hoveredNodeAdjacentNodes}
                                     onNodeClick={handleNodeClick}
                                     onNodeHover={handleNodeHover}
+                                    canPlaceTileOnNode={canPlaceTileOnNode}
                                 />
                             )}
 
@@ -400,13 +425,15 @@ export default function DailyModePage() {
                                 <DrawSolvedGrid
                                     tiles={tiles}
                                     graph={graph}
+                                    edges={edges}
+                                    originalEdges={showOriginalEdges}
                                 />
                             )}
                         </g>
                     </svg>
 
                     <Row className="bottom-row">
-                        <Col className="d-flex flex-column align-items-center">
+                        <Col className="d-flex justify-content-center align-items-center gap-2">
                             {!isSolved && (
                                 <Button disabled={tiles.length === 0} onClick={() => updateCurrentState(prev => {
                                     return {...prev, tileIDs: []}
@@ -418,6 +445,12 @@ export default function DailyModePage() {
                             {isSolved && (
                                 <Button onClick={() => setShowResults(true)}>
                                     View Results
+                                </Button>
+                            )}
+
+                            {isSolved && (
+                                <Button onClick={() => setShowOriginalEdges(prev => !prev)}>
+                                    {showOriginalEdges ? "See Solved Puzzle" : "See Original Puzzle"}
                                 </Button>
                             )} 
                         </Col>             

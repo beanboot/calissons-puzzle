@@ -4,10 +4,10 @@ import { Node } from "./Node";
 import { findTileNodes, findTilePoints, getNodeFillFromNodes } from "./MiscellaneousFunctions";
 
 // function to visualise graph
-export function DrawInteractiveGrid({ graph, edges, interactable, hoveredNodeAdjacentNodes, onNodeClick, onNodeHover }:
+export function DrawInteractiveGrid({ graph, edges, interactable, hoveredNodeAdjacentNodes, onNodeClick, onNodeHover, canPlaceTileOnNode }:
   {
     graph: Graph; edges: Edge[]; interactable: boolean; hoveredNodeAdjacentNodes: Node[]; onNodeClick: (points: Point[], nodes: Node[]) => void;
-    onNodeHover: (adjacentNodes: Node[] | null) => void;
+    onNodeHover: (adjacentNodes: Node[] | null) => void; canPlaceTileOnNode: (points: Point[]) => boolean
   }) {
   return (
     <>
@@ -65,7 +65,7 @@ export function DrawInteractiveGrid({ graph, edges, interactable, hoveredNodeAdj
                 />,
 
                 // tile placing interactive node
-                interactable && (
+                (interactable && canPlaceTileOnNode(findTilePoints(node, n))) && (
                 <circle
                   key={`circle-${i}-${j}`}
                   className="node"

@@ -5,6 +5,7 @@ html, body, #root {
 
 h1 {
   text-align: center;
+  user-select: none;
 }
 
 .page {
@@ -57,6 +58,14 @@ h1 {
   --bs-btn-border-color: #f8ff22;
   --bs-btn-hover-bg: #e3ea19;
   --bs-btn-hover-border-color: #e3ea19;
+}
+
+/* Overriding bootstrap success button colour*/
+.btn.btn-success {
+  --bs-btn-bg: #48da43;
+  --bs-btn-border-color: #48da43;
+  --bs-btn-hover-bg: #38a635;
+  --bs-btn-hover-border-color: #38a635;
 }
 
 .icon {
