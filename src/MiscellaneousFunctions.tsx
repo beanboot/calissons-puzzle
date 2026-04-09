@@ -90,7 +90,7 @@ export function DrawCalissonTile({ tile }: { tile: CalissonTile }) {
       points={pointsString}
       fill={tile.fill}
       stroke={tile.fill}
-      strokeWidth={0.00}
+      strokeWidth={0.02}
       opacity={1}
     />
   );

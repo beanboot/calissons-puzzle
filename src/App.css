@@ -36,6 +36,20 @@ h1 {
   border-bottom: 10px solid #0d6efd;
 }
 
+.top-row .btn {
+    width: 95px;
+    height: 60px;
+    text-align: center;
+}
+
+@media (min-width: 700px) {
+    .top-row .btn {
+      width: 200px;
+      height: 40px;
+      text-align: center;
+    }
+}
+
 .bottom-row {
   padding-bottom: 10px;
 }
@@ -70,7 +84,7 @@ h1 {
 
 .icon {
   position: relative;
-  top: -1.25px;
+  top: -0.75px;
 }
 
 .node {

@@ -1,283 +1,334 @@
-import { useState, useEffect, useMemo, useRef } from "react"
-import type { Point, Edge, CalissonTile, Difficulties } from "../Types"
-import { DrawCalissonTile, canPlaceTile, getFillFromNodes, formatTime } from "../MiscellaneousFunctions"
-import { Node } from "../Node"
-import { DrawInteractiveGrid } from "../DrawInteractiveGrid"
-import { build2DGraph } from "../Build2DGraph"
-import "../App.css"
-import { generateSolvableEdges } from "../GenerateEdges"
-import { Container, Dropdown, DropdownButton, Row, Col, Button } from "react-bootstrap"
-import 'bootstrap/dist/css/bootstrap.min.css'
-import { isPuzzleSolved } from "../IsPuzzleSolved"
+import { useState, useEffect, useMemo, useRef } from "react";
+import type { Point, Edge, CalissonTile, Difficulties } from "../Types";
+import {
+	DrawCalissonTile,
+	canPlaceTile,
+	getFillFromNodes,
+	formatTime,
+} from "../MiscellaneousFunctions";
+import { Node } from "../Node";
+import { DrawInteractiveGrid } from "../DrawInteractiveGrid";
+import { build2DGraph } from "../Build2DGraph";
+import "../App.css";
+import { generateSolvableEdges } from "../GenerateEdges";
+import {
+	Container,
+	Dropdown,
+	DropdownButton,
+	Row,
+	Col,
+	Button,
+} from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { isPuzzleSolved } from "../IsPuzzleSolved";
 import { FaRegQuestionCircle } from "react-icons/fa";
 import { IoMdExit } from "react-icons/io";
-import { useWindowSize } from 'react-use'
-import Confetti from 'react-confetti'
-import { solvePuzzle } from "../SolvingAlgorithm"
-import { DrawSolvedGrid } from "../DrawSolvedGrid"
-import { useNavigate } from "react-router-dom"
-import { TutorialModal, ConfirmationModal } from "../Modals"
+import { useWindowSize } from "react-use";
+import Confetti from "react-confetti";
+import { solvePuzzle } from "../SolvingAlgorithm";
+import { DrawSolvedGrid } from "../DrawSolvedGrid";
+import { useNavigate } from "react-router-dom";
+import { TutorialModal, ConfirmationModal } from "../Modals";
 
 export default function EndlessModePage() {
-    // Initialise the grid size state to the default size constant
-    const [gridSize, setGridSize] = useState(2)
+	// Initialise the grid size state to the default size constant
+	const [gridSize, setGridSize] = useState(2);
 
-    const [puzzlesSolved, setPuzzlesSolved] = useState<number>(0)
+	const [puzzlesSolved, setPuzzlesSolved] = useState<number>(0);
 
-    const wasSolvedRef = useRef(false)
+	const wasSolvedRef = useRef(false);
 
-    const [isSolved, setIsSolved] = useState(false)
-    const [autoSolved, setAutoSolved] = useState(false)
+	const [isSolved, setIsSolved] = useState(false);
+	const [autoSolved, setAutoSolved] = useState(false);
 
-    // Initialise empty tiles state
-    const [tiles, setTiles] = useState<CalissonTile[]>([])
+	// Boolean state for puzzle interactability
+	const [interactable, setInteractable] = useState(true);
 
-    // Initialise empty edges state
-    const [edges, setEdges] = useState<Edge[]>([])
+	// Initialise empty tiles state
+	const [tiles, setTiles] = useState<CalissonTile[]>([]);
 
-    const [numberOfEdges, setNumberOfEdges] = useState<number>(4)
+	// Initialise empty edges state
+	const [edges, setEdges] = useState<Edge[]>([]);
 
-    const [difficulty, setDifficulty] = useState<Difficulties>("EASY")
+	const [numberOfEdges, setNumberOfEdges] = useState<number>(4);
 
-    // Timer states
-    const [startTime, setStartTime] = useState<number | null>(null)
-    const [elapsedTime, setElapsedTime] = useState<number>(0)
+	const [difficulty, setDifficulty] = useState<Difficulties>("EASY");
 
-    const [showTutorial, setShowTutorial] = useState(false)
-    const [showConfirmation, setShowConfirmation] = useState(false)
+	// Timer states
+	const [startTime, setStartTime] = useState<number | null>(null);
+	const [elapsedTime, setElapsedTime] = useState<number>(0);
 
-    const navigate = useNavigate()
+	const [showTutorial, setShowTutorial] = useState(false);
+	const [showConfirmation, setShowConfirmation] = useState(false);
 
-    // Initialise state for storing adjacent nodes to any node being hovered by user
-    const [hoveredNodeAdjacentNodes, setHoveredNodeAdjacentNodes] = useState<Node[]>([])
+	const navigate = useNavigate();
 
-    // Memoized graph will only be redrawn if grid size changes
-    const graph = useMemo(() => build2DGraph(gridSize), [gridSize])
+	// Initialise state for storing adjacent nodes to any node being hovered by user
+	const [hoveredNodeAdjacentNodes, setHoveredNodeAdjacentNodes] = useState<
+		Node[]
+	>([]);
 
-    // Function to place tiles when node is clicked
-    function handleNodeClick(points: Point[], nodes: Node[]) {
-        const id = nodes.map(p => `${p.value.q},${p.value.r},${p.value.s}`).join("|")
+	// Memoized graph will only be redrawn if grid size changes
+	const graph = useMemo(() => build2DGraph(gridSize), [gridSize]);
 
-        setTiles(prevTiles => {
-            const tileExists = prevTiles.find(tile => tile.id === id)
+	// Function to place tiles when node is clicked
+	function handleNodeClick(points: Point[], nodes: Node[]) {
+		const id = nodes
+			.map((p) => `${p.value.q},${p.value.r},${p.value.s}`)
+			.join("|");
 
-            if (tileExists) {
-                return prevTiles.filter(tile => tile.id !== id)
-            }
+		setTiles((prevTiles) => {
+			const tileExists = prevTiles.find((tile) => tile.id === id);
 
-            if (!canPlaceTile(points, prevTiles)) {
-                return prevTiles
-            }
+			if (tileExists) {
+				return prevTiles.filter((tile) => tile.id !== id);
+			}
 
-            return [
-                ...prevTiles,
-                {
-                    id,
-                    points,
-                    nodes,
-                    fill: getFillFromNodes(nodes[0], nodes[2])
-                }
-            ]
-        })
-    }
+			if (!canPlaceTile(points, prevTiles)) {
+				return prevTiles;
+			}
 
-    // Fills the adjacent node state when a node is hovered
-    function handleNodeHover(nodes: Node[] | null) {
-        if (nodes === null) {
-            setHoveredNodeAdjacentNodes([])
-        } else {
-            setHoveredNodeAdjacentNodes(nodes)
-        }
-    }
+			return [
+				...prevTiles,
+				{
+					id,
+					points,
+					nodes,
+					fill: getFillFromNodes(nodes[0], nodes[2]),
+				},
+			];
+		});
+	}
 
-    function handleNextPuzzle() {
-        setEdges(generateSolvableEdges(graph, numberOfEdges, gridSize))
-        setTiles([])
-        setIsSolved(false)
-        setAutoSolved(false)
-        setHoveredNodeAdjacentNodes([])
-        wasSolvedRef.current = false
+	// Fills the adjacent node state when a node is hovered
+	function handleNodeHover(nodes: Node[] | null) {
+		if (nodes === null) {
+			setHoveredNodeAdjacentNodes([]);
+		} else {
+			setHoveredNodeAdjacentNodes(nodes);
+		}
+	}
 
-        // Start timer
-        setStartTime(Date.now())
-        setElapsedTime(0)
-    }
+	function handleNextPuzzle() {
+		setEdges(generateSolvableEdges(graph, numberOfEdges, gridSize));
+		setTiles([]);
+		setIsSolved(false);
+		setAutoSolved(false);
+		setHoveredNodeAdjacentNodes([]);
+		wasSolvedRef.current = false;
 
-    // Returns true if a tile can be placed on a node, false if not 
-    function canPlaceTileOnNode(points: Point[]): boolean {
-        return canPlaceTile(points, tiles)
-    }
+		// Start timer
+		setStartTime(Date.now());
+		setElapsedTime(0);
+	}
 
-    // Generates puzzle if gridSize or graph changes (probably due to difficulty change)
-    useEffect(() => {
-        if (!isSolved) {
-            setEdges(generateSolvableEdges(graph, numberOfEdges, gridSize))
-            setTiles([])
-            setAutoSolved(false)
+	// Returns true if a tile can be placed on a node, false if not
+	function canPlaceTileOnNode(points: Point[]): boolean {
+		return canPlaceTile(points, tiles);
+	}
 
-            // Start timer
-            setStartTime(Date.now())
-            setElapsedTime(0)
-        }
-    }, [gridSize, graph])
+	// Calls solving algorithm and staggers tile placement
+	function generateSolution() {
+		setTiles([]);
+		setInteractable(false);
+		setAutoSolved(true);
+		setPuzzlesSolved(0);
 
-    // Checks if puzzle is solved when tiles array changes
-    useEffect(() => {
-        const solved = isPuzzleSolved(tiles, edges, gridSize)
+		const newTiles = solvePuzzle(edges, graph, gridSize);
 
-        if (solved && !wasSolvedRef.current) {
-            if (!autoSolved) setPuzzlesSolved(prev => prev + 1)
-            setIsSolved(true)
+		if (!newTiles || newTiles.length === 0) return;
 
-            if (startTime) {
-                setElapsedTime(Date.now() - startTime) // Stop timer
-            }
-        }
+		const delay = 50;
 
-        wasSolvedRef.current = solved
-    }, [tiles])
+		// Delay between drawing tiles
+		newTiles.forEach((tile, index) => {
+			setTimeout(() => {
+				setTiles((prev) => [...prev, tile]);
+			}, index * delay);
+		});
 
-    // Dificulty change logic
-    useEffect(() => {
-        switch (difficulty) {
-            case "EASY":
-                setGridSize(2)
-                setNumberOfEdges(4)
-                break
-            case "MEDIUM":
-                setGridSize(3)
-                setNumberOfEdges(8)
-                break
-            case "HARD":
-                setGridSize(4)
-                setNumberOfEdges(10)
-                break
-        }
+		// Re-enables interactivity after tiles are drawn
+		setTimeout(() => {
+			setInteractable(true);
+		}, newTiles.length * delay);
+	}
 
-        setIsSolved(false)
-        setHoveredNodeAdjacentNodes([])
-        wasSolvedRef.current = false
-    }, [difficulty])
+	// Generates puzzle if gridSize or graph changes (probably due to difficulty change)
+	useEffect(() => {
+		if (!isSolved) {
+			setEdges(generateSolvableEdges(graph, numberOfEdges, gridSize));
+			setTiles([]);
+			setAutoSolved(false);
 
-    const R = gridSize + 1
-    const viewboxWidth = 3 * R
-    const viewboxHeight = Math.sqrt(3) * 2 * R
+			// Start timer
+			setStartTime(Date.now());
+			setElapsedTime(0);
+		}
+	}, [gridSize, graph]);
 
-    const { width, height } = useWindowSize()
+	// Checks if puzzle is solved when tiles array changes
+	useEffect(() => {
+		const solved = isPuzzleSolved(tiles, edges, gridSize);
 
-    return (
-        <Container fluid className="page ibm-plex-serif-semibold">
-            {/* Tutorial modal screen */}
-            <TutorialModal show={showTutorial} onHide={() => setShowTutorial(false)} />
+		if (solved && !wasSolvedRef.current) {
+			if (!autoSolved) setPuzzlesSolved((prev) => prev + 1);
+			setIsSolved(true);
 
-            {/* Reveal solution confirmation */}
-            <ConfirmationModal 
-                show={showConfirmation} 
-                onHide={() => setShowConfirmation(false)}
-                onConfirm={() => {
-                    setTiles(solvePuzzle(edges, graph, gridSize))
-                    setAutoSolved(true)
-                    setPuzzlesSolved(0)
-                    setShowConfirmation(false)
-                }}
-                title="Are you sure?"
-                body="Auto generating the solution will reset your streak to zero."
-            />
+			if (startTime) {
+				setElapsedTime(Date.now() - startTime); // Stop timer
+			}
+		}
 
-            {/* Draws confetti if puzzle is solved */}
-            {(isSolved && !autoSolved) && (
-                <Confetti
-                    width={width}
-                    height={height}
-                    recycle={false}
-                />
-            )}
+		wasSolvedRef.current = solved;
+	}, [tiles]);
 
-            <Row className="d-flex justify-content-center align-items-start top-row flex-nowrap">
-                <Col className="d-flex flex-column align-items-start gap-1">
-                    <Button onClick={() => navigate("/")}>
-                        Daily Mode <IoMdExit className="icon" />
-                    </Button>
-                </Col>
+	// Dificulty change logic
+	useEffect(() => {
+		switch (difficulty) {
+			case "EASY":
+				setGridSize(2);
+				setNumberOfEdges(4);
+				break;
+			case "MEDIUM":
+				setGridSize(3);
+				setNumberOfEdges(8);
+				break;
+			case "HARD":
+				setGridSize(4);
+				setNumberOfEdges(10);
+				break;
+		}
 
-                <Col className="d-flex flex-column align-self-center">
-                    <h1>The Calissons Puzzle</h1>
-                </Col>
+		setIsSolved(false);
+		setHoveredNodeAdjacentNodes([]);
+		wasSolvedRef.current = false;
+	}, [difficulty]);
 
-                <Col className="d-flex flex-column align-items-end gap-1">
-                    <Button onClick={() => setShowTutorial(true)}>
-                        How to play <FaRegQuestionCircle className="icon" />
-                    </Button>
+	const R = gridSize + 1;
+	const viewboxWidth = 3 * R;
+	const viewboxHeight = Math.sqrt(3) * 2 * R;
 
-                    <Button
-                        disabled={isSolved}
-                        onClick={() => setShowConfirmation(true)}
-                    >
-                        Generate Solution
-                    </Button>
-                </Col>
-            </Row>
+	const { width, height } = useWindowSize();
 
-            <svg
-                viewBox={`${-viewboxWidth / 2} ${-viewboxHeight / 2} ${viewboxWidth} ${viewboxHeight}`}
-                preserveAspectRatio="xMidYMid meet"
-                className="svg"
-            >
-                <g transform="scale(2)">
-                    {tiles.map(tile => (
-                        <DrawCalissonTile key={tile.id} tile={tile} />
-                    ))}
+	return (
+		<Container fluid className="page ibm-plex-serif-semibold">
+			{/* Tutorial modal screen */}
+			<TutorialModal
+				show={showTutorial}
+				onHide={() => setShowTutorial(false)}
+			/>
 
-                    {!isSolved && (
-                        <DrawInteractiveGrid
-                            graph={graph}
-                            edges={edges}
-                            interactable={true}
-                            hoveredNodeAdjacentNodes={hoveredNodeAdjacentNodes}
-                            onNodeClick={handleNodeClick}
-                            onNodeHover={handleNodeHover}
-                            canPlaceTileOnNode={canPlaceTileOnNode}
-                        />
-                    )}
+			{/* Reveal solution confirmation */}
+			<ConfirmationModal
+				show={showConfirmation}
+				onHide={() => setShowConfirmation(false)}
+				onConfirm={() => {
+					generateSolution();
+					setShowConfirmation(false);
+				}}
+				title="Are you sure?"
+				body="Auto generating the solution will reset your streak to zero."
+			/>
 
-                    {isSolved && (
-                        <DrawSolvedGrid
-                            tiles={tiles}
-                            graph={graph}
-                            edges={edges}
-                            originalEdges={false}
-                        />
-                    )}
-                </g>
-            </svg>
+			{/* Draws confetti if puzzle is solved */}
+			{isSolved && !autoSolved && (
+				<Confetti width={width} height={height} recycle={false} />
+			)}
 
-            <div className="d-flex justify-content-center align-items-top gap-2 bottom-row flex-nowrap">
-                <DropdownButton id="difficulty-dropdown" title={difficulty}>
-                    <Dropdown.Item onClick={() => setDifficulty("EASY")}>Easy</Dropdown.Item>
-                    <Dropdown.Item onClick={() => setDifficulty("MEDIUM")}>Medium</Dropdown.Item>
-                    <Dropdown.Item onClick={() => setDifficulty("HARD")}>Hard</Dropdown.Item>
-                </DropdownButton>
+			<Row className="d-flex justify-content-center align-items-start top-row flex-nowrap">
+				<Col xs="auto" className="d-flex flex-column align-items-start gap-1">
+					<Button onClick={() => navigate("/")}>
+						Daily Mode <IoMdExit className="icon" />
+					</Button>
+				</Col>
 
-                <Button variant="outline-success" className="not-clickable">
-                    Streak: {puzzlesSolved}
-                </Button>
+				<Col className="d-flex flex-column align-self-center">
+					<h1>The Calissons Puzzle</h1>
+				</Col>
 
-                {!isSolved && (
-                    <Button disabled={tiles.length === 0} onClick={() => setTiles([])}>
-                        Reset
-                    </Button>
-                )}
+				<Col xs="auto" className="d-flex flex-column align-items-end gap-1">
+					<Button onClick={() => setShowTutorial(true)}>
+						How to play <FaRegQuestionCircle className="icon" />
+					</Button>
 
-                {isSolved && (
-                    <Button variant="outline-success" className="not-clickable">
-                        Time: {formatTime(elapsedTime)}
-                    </Button>
-                )}
+					<Button
+						disabled={isSolved}
+						onClick={() => setShowConfirmation(true)}
+					>
+						Generate Solution
+					</Button>
+				</Col>
+			</Row>
 
-                <Button disabled={!isSolved} onClick={handleNextPuzzle}>
-                    Next Puzzle
-                </Button>
-            </div>
-        </Container>
-    )
+			<svg
+				viewBox={`${-viewboxWidth / 2} ${-viewboxHeight / 2} ${viewboxWidth} ${viewboxHeight}`}
+				preserveAspectRatio="xMidYMid meet"
+				className="svg"
+			>
+				<g transform="scale(2)">
+					{tiles.map((tile) => (
+						<DrawCalissonTile key={tile.id} tile={tile} />
+					))}
+
+					{!isSolved && (
+						<DrawInteractiveGrid
+							graph={graph}
+							edges={edges}
+							interactable={interactable}
+							hoveredNodeAdjacentNodes={hoveredNodeAdjacentNodes}
+							onNodeClick={handleNodeClick}
+							onNodeHover={handleNodeHover}
+							canPlaceTileOnNode={canPlaceTileOnNode}
+						/>
+					)}
+
+					{isSolved && (
+						<DrawSolvedGrid
+							tiles={tiles}
+							graph={graph}
+							edges={edges}
+							showOriginalEdges={false}
+						/>
+					)}
+				</g>
+			</svg>
+
+			<div className="d-flex justify-content-center align-items-top gap-2 bottom-row flex-nowrap">
+				<DropdownButton id="difficulty-dropdown" title={difficulty}>
+					<Dropdown.Item onClick={() => setDifficulty("EASY")}>
+						Easy
+					</Dropdown.Item>
+					<Dropdown.Item onClick={() => setDifficulty("MEDIUM")}>
+						Medium
+					</Dropdown.Item>
+					<Dropdown.Item onClick={() => setDifficulty("HARD")}>
+						Hard
+					</Dropdown.Item>
+				</DropdownButton>
+
+				<Button variant="outline-success" className="not-clickable">
+					Streak: {puzzlesSolved}
+				</Button>
+
+				{!isSolved && (
+					<Button
+						disabled={tiles.length === 0}
+						onClick={() => setTiles([])}
+					>
+						Reset
+					</Button>
+				)}
+
+				{isSolved && (
+					<Button variant="outline-success" className="not-clickable">
+						Time: {formatTime(elapsedTime)}
+					</Button>
+				)}
+
+				<Button disabled={!isSolved} onClick={handleNextPuzzle}>
+					Next Puzzle
+				</Button>
+			</div>
+		</Container>
+	);
 }

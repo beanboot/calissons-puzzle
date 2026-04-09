@@ -2,36 +2,41 @@ import type { Graph } from "./Graph";
 import { returnSharedNodes } from "./MiscellaneousFunctions";
 import type { SolvedEdge, CalissonTile, Edge } from "./Types";
 
-export function DrawSolvedGrid({ tiles, graph, edges, originalEdges }: { 
+export function DrawSolvedGrid({ tiles, graph, edges, showOriginalEdges }: { 
     tiles: CalissonTile[], 
     graph: Graph,
     edges: Edge[],
-    originalEdges: boolean
+    showOriginalEdges: boolean
 }) {
-    const solvedEdges: SolvedEdge[] = []
+    const originalEdges: SolvedEdge[] = []
+
+    const nonOriginalEdges: SolvedEdge[] = []
 
     for (const tileA of tiles) {
         for (const tileB of tiles) {
             const sharedNodes = returnSharedNodes(tileA.nodes, tileB.nodes)
 
             if (sharedNodes.length === 2 && tileA.fill !== tileB.fill) {
-                const exists = solvedEdges.some(e =>
+                const exists = originalEdges.some(e =>
                     (e.nodeA.id === sharedNodes[0].id && e.nodeB.id === sharedNodes[1].id) ||
                     (e.nodeA.id === sharedNodes[1].id && e.nodeB.id === sharedNodes[0].id)
                 )
 
-                // Convoluted way of checking if edges are equal, only display previous edges when toggleEdges is true
+                // Convoluted way of checking if edges are equal, only display previous edges when originalEdges is true
                 if (!exists) {
-                    if (originalEdges) {
-                        for (const edge of edges) {
-                            if (sharedNodes[0].id === edge.nodeA.id && sharedNodes[1].id === edge.nodeB.id
-                                || sharedNodes[0].id === edge.nodeB.id && sharedNodes[1].id === edge.nodeA.id) 
-                            {
-                                solvedEdges.push({nodeA: sharedNodes[0], nodeB: sharedNodes[1]})
-                            } 
+                    if (showOriginalEdges) {
+                        const isOriginalEdge = edges.some(edge =>
+                            (sharedNodes[0].id === edge.nodeA.id && sharedNodes[1].id === edge.nodeB.id) ||
+                            (sharedNodes[0].id === edge.nodeB.id && sharedNodes[1].id === edge.nodeA.id)
+                        );
+
+                        if (isOriginalEdge) {
+                            originalEdges.push({ nodeA: sharedNodes[0], nodeB: sharedNodes[1] });
+                        } else {
+                            nonOriginalEdges.push({ nodeA: sharedNodes[0], nodeB: sharedNodes[1] });
                         }
                     } else {
-                        solvedEdges.push({nodeA: sharedNodes[0], nodeB: sharedNodes[1]})
+                        originalEdges.push({nodeA: sharedNodes[0], nodeB: sharedNodes[1]})
                     }
                 }
             }
@@ -40,6 +45,36 @@ export function DrawSolvedGrid({ tiles, graph, edges, originalEdges }: {
 
     return (
         <>
+        {nonOriginalEdges.map((edge, i) => {
+            return (
+                <line
+                key={`solvedEdge-${i}`}
+                x1={edge.nodeA.value.px}
+                y1={edge.nodeA.value.py}
+                x2={edge.nodeB.value.px}
+                y2={edge.nodeB.value.py}
+                stroke="gray"
+                strokeWidth={.08}
+                strokeLinecap="round"
+                />
+            )
+        })}
+
+        {originalEdges.map((edge, i) => {
+            return (
+                <line
+                key={`solvedEdge-${i}`}
+                x1={edge.nodeA.value.px}
+                y1={edge.nodeA.value.py}
+                x2={edge.nodeB.value.px}
+                y2={edge.nodeB.value.py}
+                stroke="black"
+                strokeWidth={.08}
+                strokeLinecap="round"
+                />
+            )
+        })}
+
         {/* map applies a function to each element iteratively */}
         {graph.nodes.map((node, i) =>
             node.neighbours.map((n, j) => {
@@ -63,21 +98,6 @@ export function DrawSolvedGrid({ tiles, graph, edges, originalEdges }: {
                 }
             })
         )}
-
-        {solvedEdges.map((edge, i) => {
-            return (
-                <line
-                key={`solvedEdge-${i}`}
-                x1={edge.nodeA.value.px}
-                y1={edge.nodeA.value.py}
-                x2={edge.nodeB.value.px}
-                y2={edge.nodeB.value.py}
-                stroke="black"
-                strokeWidth={.08}
-                strokeLinecap="round"
-                />
-            )
-        })}
         </>
     )
 }

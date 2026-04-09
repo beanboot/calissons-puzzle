@@ -30,13 +30,7 @@ export function TutorialModal({
 
                 <Row className="text-center">
                     <Col>
-                        <h5>The goal is to place tiles such that:</h5>
-                    </Col>
-                </Row>
-
-                <Row className="text-center">
-                    <Col>
-                        1) The entire grid is filled
+                        1) The entire grid must be filled
                     </Col>
                 </Row>
 
@@ -48,7 +42,7 @@ export function TutorialModal({
 
                 <Row className="text-center">
                     <Col>
-                        2) Each puzzle edge (black line) is adjacent to tiles of different directions
+                        2) Each puzzle edge (black line) must be adjacent to tiles of different directions
                     </Col>
                 </Row>
 
