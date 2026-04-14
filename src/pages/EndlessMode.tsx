@@ -18,6 +18,7 @@ import {
 	Row,
 	Col,
 	Button,
+	ToggleButton,
 } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { isPuzzleSolved } from "../IsPuzzleSolved";
@@ -59,7 +60,10 @@ export default function EndlessModePage() {
 	const [elapsedTime, setElapsedTime] = useState<number>(0);
 
 	const [showTutorial, setShowTutorial] = useState(false);
-	const [showConfirmation, setShowConfirmation] = useState(false);
+	const [showSolutionConfirmation, setShowSolutionConfirmation] = useState(false);
+	const [showSkipConfirmation, setShowSkipConfirmation] = useState(false);
+
+	const [showOriginalEdges, setShowOriginalEdges] = useState(false);
 
 	const navigate = useNavigate();
 
@@ -116,6 +120,7 @@ export default function EndlessModePage() {
 		setAutoSolved(false);
 		setHoveredNodeAdjacentNodes([]);
 		wasSolvedRef.current = false;
+		setShowOriginalEdges(false);
 
 		// Start timer
 		setStartTime(Date.now());
@@ -159,6 +164,7 @@ export default function EndlessModePage() {
 			setEdges(generateSolvableEdges(graph, numberOfEdges, gridSize));
 			setTiles([]);
 			setAutoSolved(false);
+			setShowOriginalEdges(false);
 
 			// Start timer
 			setStartTime(Date.now());
@@ -204,6 +210,15 @@ export default function EndlessModePage() {
 		wasSolvedRef.current = false;
 	}, [difficulty]);
 
+	// Uses local storage to display tutorial to first time players
+	useEffect(() => {
+		const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
+
+		if (!hasSeenTutorial) {
+			setShowTutorial(true);
+		}
+	}, []);
+
 	const R = gridSize + 1;
 	const viewboxWidth = 3 * R;
 	const viewboxHeight = Math.sqrt(3) * 2 * R;
@@ -220,14 +235,27 @@ export default function EndlessModePage() {
 
 			{/* Reveal solution confirmation */}
 			<ConfirmationModal
-				show={showConfirmation}
-				onHide={() => setShowConfirmation(false)}
+				show={showSolutionConfirmation}
+				onHide={() => setShowSolutionConfirmation(false)}
 				onConfirm={() => {
 					generateSolution();
-					setShowConfirmation(false);
+					setShowSolutionConfirmation(false);
 				}}
 				title="Are you sure?"
 				body="Auto generating the solution will reset your streak to zero."
+			/>
+
+			{/* Skip puzzle confirmation */}
+			<ConfirmationModal
+				show={showSkipConfirmation}
+				onHide={() => setShowSkipConfirmation(false)}
+				onConfirm={() => {
+					handleNextPuzzle();
+					setPuzzlesSolved(0);
+					setShowSkipConfirmation(false);
+				}}
+				title="Are you sure?"
+				body="This will skip the current puzzle, and reset your streak to zero."
 			/>
 
 			{/* Draws confetti if puzzle is solved */}
@@ -240,6 +268,13 @@ export default function EndlessModePage() {
 					<Button onClick={() => navigate("/")}>
 						Daily Mode <IoMdExit className="icon" />
 					</Button>
+
+					<Button
+						disabled={isSolved || autoSolved}
+						onClick={() => setShowSolutionConfirmation(true)}
+					>
+						Generate Solution
+					</Button>
 				</Col>
 
 				<Col className="d-flex flex-column align-self-center">
@@ -251,12 +286,24 @@ export default function EndlessModePage() {
 						How to play <FaRegQuestionCircle className="icon" />
 					</Button>
 
-					<Button
-						disabled={isSolved}
-						onClick={() => setShowConfirmation(true)}
-					>
-						Generate Solution
-					</Button>
+					{!isSolved && (
+						<Button
+							disabled={isSolved || autoSolved}
+							onClick={() => setShowSkipConfirmation(true)}
+						>
+							Skip Puzzle
+						</Button>
+					)}
+
+					{isSolved && (
+						<Button 
+							disabled={!isSolved} 
+							onClick={handleNextPuzzle}
+							variant="success"
+						>
+							Next Puzzle
+						</Button>
+					)}
 				</Col>
 			</Row>
 
@@ -287,48 +334,60 @@ export default function EndlessModePage() {
 							tiles={tiles}
 							graph={graph}
 							edges={edges}
-							showOriginalEdges={false}
+							showOriginalEdges={showOriginalEdges}
 						/>
 					)}
 				</g>
 			</svg>
 
-			<div className="d-flex justify-content-center align-items-top gap-2 bottom-row flex-nowrap">
-				<DropdownButton id="difficulty-dropdown" title={difficulty}>
-					<Dropdown.Item onClick={() => setDifficulty("EASY")}>
-						Easy
-					</Dropdown.Item>
-					<Dropdown.Item onClick={() => setDifficulty("MEDIUM")}>
-						Medium
-					</Dropdown.Item>
-					<Dropdown.Item onClick={() => setDifficulty("HARD")}>
-						Hard
-					</Dropdown.Item>
-				</DropdownButton>
+			<Row className="bottom-row">
+				<Col className="d-flex justify-content-center align-items-top gap-2">
+					<DropdownButton id="difficulty-dropdown" title={difficulty} disabled={autoSolved && !isSolved}>
+						<Dropdown.Item onClick={() => setDifficulty("EASY")}>
+							Easy
+						</Dropdown.Item>
+						<Dropdown.Item onClick={() => setDifficulty("MEDIUM")}>
+							Medium
+						</Dropdown.Item>
+						<Dropdown.Item onClick={() => setDifficulty("HARD")}>
+							Hard
+						</Dropdown.Item>
+					</DropdownButton>
 
-				<Button variant="outline-success" className="not-clickable">
-					Streak: {puzzlesSolved}
-				</Button>
+					{!isSolved && (
+						<Button
+							disabled={tiles.length === 0 || autoSolved}
+							onClick={() => setTiles([])}
+						>
+							Reset
+						</Button>
+					)}
 
-				{!isSolved && (
-					<Button
-						disabled={tiles.length === 0}
-						onClick={() => setTiles([])}
-					>
-						Reset
-					</Button>
-				)}
+					{isSolved && (
+						<ToggleButton
+							id="original-puzzle-toggle"
+							value={1}
+							type="checkbox"
+							variant="outline-primary"
+							checked={!showOriginalEdges}
+							onClick={() => setShowOriginalEdges((prev) => !prev)}
+							className="d-flex align-items-center justify-content-center"
+						>
+							Toggle Edges
+						</ToggleButton>
+					)}
 
-				{isSolved && (
+					{isSolved && (
+						<Button variant="outline-success" className="not-clickable">
+							Time: {formatTime(elapsedTime)}
+						</Button>
+					)}
+
 					<Button variant="outline-success" className="not-clickable">
-						Time: {formatTime(elapsedTime)}
+						Streak: {puzzlesSolved}
 					</Button>
-				)}
-
-				<Button disabled={!isSolved} onClick={handleNextPuzzle}>
-					Next Puzzle
-				</Button>
-			</div>
+				</Col>
+			</Row>
 		</Container>
 	);
 }

@@ -43,19 +43,78 @@ h1 {
 }
 
 @media (min-width: 700px) {
-    .top-row .btn {
-      width: 200px;
-      height: 40px;
-      text-align: center;
-    }
+  .top-row .btn {
+    width: 200px;
+    height: 40px;
+    text-align: center;
+  }
 }
 
 .bottom-row {
   padding-bottom: 10px;
 }
 
+.bottom-row .btn {
+  min-width: 80px;
+  height: 60px;
+  text-align: center;
+}
+
+@media (min-width: 700px) {
+  .bottom-row .btn {
+    min-width: 160px;
+    height: 40px;
+    text-align: center;
+  }
+}
+
 .not-clickable {
   pointer-events: none;
+}
+
+.icon {
+  position: relative;
+  top: -0.75px;
+}
+
+.node {
+  transform-origin: center;
+  transform-box: fill-box;
+  transform: scale(1.4);
+  stroke-width: .03;
+  transition: transform 0.15s ease, fill 0.15s ease;
+}
+
+.node:hover {
+  transform: scale(1.6);
+  cursor: pointer;
+}
+
+@media (min-width: 700px) {
+  .node {
+    transform-origin: center;
+    transform-box: fill-box;
+    transform: scale(1.2);
+    stroke-width: .04;
+    transition: transform 0.15s ease, fill 0.15s ease;
+  }
+
+  .node:hover {
+    transform: scale(1.4);
+    cursor: pointer;
+  }
+}
+
+.ibm-plex-serif-semibold {
+  font-family: "IBM Plex Serif", serif;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.ibm-plex-serif-regular {
+  font-family: "IBM Plex Serif", serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 /* Overriding bootstrap danger button colour*/
@@ -80,30 +139,4 @@ h1 {
   --bs-btn-border-color: #48da43;
   --bs-btn-hover-bg: #38a635;
   --bs-btn-hover-border-color: #38a635;
-}
-
-.icon {
-  position: relative;
-  top: -0.75px;
-}
-
-.node {
-  transition: r 0.15s ease, fill 0.15s ease;
-}
-
-.node:hover {
-  r: .125;
-  cursor: pointer;
-}
-
-.ibm-plex-serif-semibold {
-  font-family: "IBM Plex Serif", serif;
-  font-weight: 600;
-  font-style: normal;
-}
-
-.ibm-plex-serif-regular {
-  font-family: "IBM Plex Serif", serif;
-  font-weight: 400;
-  font-style: normal;
 }

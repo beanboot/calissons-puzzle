@@ -14,7 +14,7 @@ import { Node } from "../Node";
 import { DrawInteractiveGrid } from "../DrawInteractiveGrid";
 import { build2DGraph } from "../Build2DGraph";
 import { generateSolvableEdges } from "../GenerateEdges";
-import { Container, Row, Col, Button, Modal } from "react-bootstrap";
+import { Container, Row, Col, Button, Modal, ToggleButton } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../App.css";
 import { isPuzzleSolved } from "../IsPuzzleSolved";
@@ -26,7 +26,7 @@ import Confetti from "react-confetti";
 import { solvePuzzle } from "../SolvingAlgorithm";
 import { DrawSolvedGrid } from "../DrawSolvedGrid";
 import { useNavigate } from "react-router-dom";
-import { ConfirmationModal, TutorialModal } from "../Modals";
+import { AboutModal, ConfirmationModal, TutorialModal } from "../Modals";
 
 export default function DailyModePage() {
 	// Initialise the grid size state to the default size constant
@@ -43,6 +43,7 @@ export default function DailyModePage() {
 	const [showResults, setShowResults] = useState(false);
 	const [showTutorial, setShowTutorial] = useState(false);
 	const [showConfirmation, setShowConfirmation] = useState(false);
+	const [showAbout, setShowAbout] = useState(false);
 
 	// Boolean state for puzzle interactability
 	const [interactable, setInteractable] = useState(true);
@@ -108,6 +109,24 @@ export default function DailyModePage() {
 
 		localStorage.setItem("calissonDailyState", JSON.stringify(payload));
 	}, [difficultyStates]);
+
+	// Uses local storage to display tutorial to first time players
+	useEffect(() => {
+		const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
+
+		if (!hasSeenTutorial && difficultySelected) {
+			setShowTutorial(true);
+		}
+	}, [difficultySelected]);
+
+	// Uses local storage to display about page to first time players
+	useEffect(() => {
+		const hasSeenAbout = localStorage.getItem("hasSeenAbout");
+
+		if (!hasSeenAbout) {
+			setShowAbout(true);
+		}
+	}, []);
 
 	// Helper function to update current difficulty state
 	function updateCurrentState(updater: (prev: DifficultyState) => DifficultyState) {
@@ -354,7 +373,22 @@ export default function DailyModePage() {
 			</Modal>
 
 			{/* Tutorial modal screen */}
-			<TutorialModal show={showTutorial} onHide={() => setShowTutorial(false)} />
+			<TutorialModal 
+				show={showTutorial} 
+				onHide={() => {
+					setShowTutorial(false);
+					localStorage.setItem("hasSeenTutorial", "true");
+				}} 
+			/>
+
+			{/* Tutorial modal screen */}
+			<AboutModal 
+				show={showAbout} 
+				onHide={() => {
+					setShowAbout(false)
+					localStorage.setItem("hasSeenAbout", "true");
+				}} 
+			/>
 
 			{/* Reveal solution confirmation */}
 			<ConfirmationModal
@@ -386,7 +420,7 @@ export default function DailyModePage() {
 								How to play <FaRegQuestionCircle className="icon" />
 							</Button>
 
-							<Button disabled={true}>
+							<Button onClick={() => setShowAbout(true)}>
 								About <FaRegQuestionCircle className="icon" />
 							</Button>
 						</Col>
@@ -470,8 +504,11 @@ export default function DailyModePage() {
 								Endless Mode <IoMdExit className="icon" />
 							</Button>
 
-							<Button onClick={() => setDifficultSelected(false)}>
-								Switch Difficulty
+							<Button 
+								disabled={isSolved || autoSolved} 
+								onClick={() => setShowConfirmation(true)}
+							>
+								Generate Solution
 							</Button>
 						</Col>
 
@@ -484,8 +521,8 @@ export default function DailyModePage() {
 								How to play <FaRegQuestionCircle className="icon" />
 							</Button>
 
-							<Button disabled={isSolved} onClick={() => setShowConfirmation(true)}>
-								Generate Solution
+							<Button onClick={() => setDifficultSelected(false)}>
+								Switch Difficulty
 							</Button>
 						</Col>
 					</Row>
@@ -527,14 +564,14 @@ export default function DailyModePage() {
 						<Col className="d-flex justify-content-center align-items-center gap-2">
 							{!isSolved && (
 								<Button
-									disabled={tiles.length === 0}
+									disabled={tiles.length === 0 || autoSolved}
 									onClick={() =>
 										updateCurrentState((prev) => {
 											return { ...prev, tileIDs: [] };
 										})
 									}
 								>
-									Reset Puzzle
+									Reset
 								</Button>
 							)}
 
@@ -543,11 +580,17 @@ export default function DailyModePage() {
 							)}
 
 							{isSolved && (
-								<Button onClick={() => setShowOriginalEdges((prev) => !prev)}>
-									{showOriginalEdges
-										? "See Solved Puzzle"
-										: "See Original Puzzle"}
-								</Button>
+								<ToggleButton
+									id="original-puzzle-toggle"
+									value={1}
+									type="checkbox"
+									variant="outline-primary"
+									checked={!showOriginalEdges}
+									onClick={() => setShowOriginalEdges((prev) => !prev)}
+									className="d-flex align-items-center justify-content-center"
+								>
+									Toggle Edges
+								</ToggleButton>
 							)}
 						</Col>
 					</Row>
