@@ -29,7 +29,7 @@ import { useNavigate } from "react-router-dom";
 import { AboutModal, ConfirmationModal, TutorialModal } from "../Modals";
 
 export default function DailyModePage() {
-	// Initialise the grid size state to the default size constant
+	// Initialise the grid size state
 	const [gridSize, setGridSize] = useState(2);
 
 	// Memoized graph will only be redrawn if grid size changes

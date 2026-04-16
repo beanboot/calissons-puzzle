@@ -188,7 +188,7 @@ export default function EndlessModePage() {
 		wasSolvedRef.current = solved;
 	}, [tiles]);
 
-	// Dificulty change logic
+	// Dificulty change useEffect hook
 	useEffect(() => {
 		switch (difficulty) {
 			case "EASY":

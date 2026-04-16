@@ -1,4 +1,4 @@
-import { Modal, Row, Col, Button } from "react-bootstrap"
+import { Modal, Button } from "react-bootstrap"
 import placeTilesGif from "./assets/place_tiles.gif"
 import removeTilesGif from "./assets/remove_tiles.gif"
 import incorrectTiles from "./assets/incorrect_tiling.png"
@@ -6,6 +6,9 @@ import redX from "./assets/red_x.png"
 import correctTiles from "./assets/correct_tiling.png"
 import greenTick from "./assets/green_tick.png"
 import solvedPuzzle from "./assets/solved_puzzle.png"
+import grid from "./assets/grid.png"
+import tiles from "./assets/tiles.png"
+import { useWindowSize } from "react-use";
 
 type TutorialModalProps = {
   show: boolean
@@ -16,6 +19,9 @@ export function TutorialModal({
     show,
     onHide
 }: TutorialModalProps) {
+    const { width } = useWindowSize();
+    const isMobile = width < 700;
+
     return (
         <Modal className="ibm-plex-serif-semibold" show={show} onHide={onHide} centered scrollable>
             <Modal.Header closeButton>
@@ -23,90 +29,95 @@ export function TutorialModal({
             </Modal.Header>
 
             <Modal.Body className="ibm-plex-serif-regular">
-                <Row className="pb-1">
-                    <Col>
-                        <h2 className="text-center">Win Conditions:</h2>
-                    </Col>
-                </Row>
+                <h2 className="text-center pb-1">Basic Rules:</h2>
 
-                <Row className="text-center">
-                    <Col>
-                        1) The entire grid must be filled
-                    </Col>
-                </Row>
+                <div className="text-center">
+                    The Calissons Puzzle is a geometry puzzle that involves placing tiles on a grid to satisfy 
+                    the win conditions.
+                </div>
 
-                <Row className="text-center pt-2">
-                    <Col>
-                        <h5>AND</h5>
-                    </Col>
-                </Row>
+                <h3 className="ps-2 pb-2 pt-3">The Grid:</h3>
 
-                <Row className="text-center">
-                    <Col>
-                        2) Each puzzle edge (black line) must be adjacent to tiles of different directions
-                    </Col>
-                </Row>
+                <div className="d-flex flex-column flex-md-row align-items-center text-center gap-2">
+                    <img src={grid} alt="Grid Example" height={200} />
 
-                <Row>
-                    <Col>
-                        <h3>e.g.</h3>
-                    </Col>
-                </Row>
+                    The grid is where you place tiles. The black lines in the grid are called edges.
+                </div>
 
-                <Row className="d-flex align-items-center justify-content-center flex-nowrap pt-2">
-                    <Col className="d-flex justify-content-center">
-                        <img src={incorrectTiles} alt="Incorrect Tiling" height={200} />
-                    </Col>
+                <h3 className="ps-2 pb-2 pt-3">The Tiles:</h3>
 
-                    <Col>
-                        <img src={redX} alt="Red X" height={100} />
-                    </Col>
-                </Row>
+                <div className="d-flex flex-column flex-md-row align-items-center text-center gap-2 pb-2">
+                    <img src={tiles} alt="Tiles Example" height={150} />
 
-                <Row className="d-flex align-items-center justify-content-center flex-nowrap">
-                    <Col className="d-flex justify-content-center">
-                        <img src={correctTiles} alt="Correct Tiling" height={200} />
-                    </Col>
+                    Tiles can come in 3 directions, each indicated by a respective colour.
+                </div>
 
-                    <Col>
-                        <img src={greenTick} alt="Green Tick" height={100} />
-                    </Col>
-                </Row>
+                <h2 className="text-center pb-1 pt-3">Win Conditions:</h2>
 
-                <Row className="pt-2 pb-1">
-                    <Col>
-                        <h2 className="text-center">How to place tiles:</h2>
-                    </Col>
-                </Row>
+                <div className="text-center">
+                    1) The entire grid must be filled
 
-                <Row>
-                    <Col>
+                    <h5 className="pt-2">AND</h5>
+
+                    2) Each puzzle edge (black line) must be adjacent to tiles of different directions
+                </div>
+
+                <h3 className="ps-2 pb-2">e.g.</h3>
+
+                <div className="d-flex align-items-center gap-4">
+                    <img src={incorrectTiles} alt="Incorrect Tiling" height={200} />
+
+                    <img src={redX} alt="Red X" height={100} />
+                </div>
+
+                <div className="d-flex align-items-center gap-4">
+                    <img src={correctTiles} alt="Correct Tiling" height={200} />
+
+                    <img src={greenTick} alt="Green Tick" height={100} />
+                </div>
+
+                <h2 className="text-center pt-2">How to place tiles:</h2>
+
+                <div className="d-flex flex-column flex-md-row align-items-center">
+                    {isMobile ? (
                         <ol>
                             <li>
-                                Each node correlates to a specific tile
+                                Each node correlates to one tile of a specific direction
                             </li>
                             <li>
-                                Hover to see what colour of tile a node represents (PC Only)
-                            </li>
-                            <li>
-                                Click on a node to place its respective tile
+                                Tap on a node to place the corresponding tile
                             </li>
                         </ol>
-                    </Col>
+                    ) : (
+                        <ol>
+                            <li>
+                                Each node correlates to one tile of a specific direction
+                            </li>
+                            <li>
+                                Hover a node to see what direction (colour) of tile it represents
+                            </li>
+                            <li>
+                                Click on a node to place the corresponding tile
+                            </li>
+                        </ol>
+                    )}
 
-                    <Col className="d-flex align-items-center">
-                        <img src={placeTilesGif} alt="How to place tiles GIF" height={200} />
-                    </Col>
-                </Row>
+                    <img src={placeTilesGif} alt="How to place tiles GIF" height={200} />
+                </div>
 
-                <Row className="pt-5 pb-1">
-                    <Col>
-                        <h2 className="text-center">How to remove tiles:</h2>
-                    </Col>
-                </Row>
+                <h2 className="text-center pt-2">How to remove tiles:</h2>
 
-                <Row>
-                    <Col>
+                <div className="d-flex flex-column flex-md-row align-items-center">
+                    {isMobile ? (
+                        <ol>
+                            <li>
+                                Each tile will always have a node in its centre
+                            </li>
+                            <li>
+                                If a tile is present, tap on its node to remove it
+                            </li>
+                        </ol>
+                    ) : (
                         <ol>
                             <li>
                                 Each tile will always have a node in its centre
@@ -115,18 +126,12 @@ export function TutorialModal({
                                 If a tile is present, click on its node to remove it
                             </li>
                         </ol>
-                    </Col>
+                    )}
 
-                    <Col className="d-flex align-items-center">
-                        <img src={removeTilesGif} alt="How to remove tiles GIF" height={200} />
-                    </Col>
-                </Row>
+                    <img src={removeTilesGif} alt="How to remove tiles GIF" height={200} />
+                </div>
 
-                <Row className="text-center pt-4">
-                    <Col>
-                        <h3>Good Luck and Have Fun!</h3>
-                    </Col>
-                </Row>
+                <h3 className="text-center pt-3">Good Luck and Have Fun!</h3>
             </Modal.Body>
         </Modal>
     )
@@ -188,67 +193,37 @@ export function AboutModal({
             </Modal.Header>
 
             <Modal.Body className="ibm-plex-serif-regular">
-                <Row>
-                    <Col>
-                        <h2 className="text-center">The Calissons Puzzle</h2>
-                    </Col>
-                </Row>
+                <div className="d-flex flex-column align-items-center text-center gap-2 pb-2">
+                    <h2>The Calissons Puzzle</h2>
 
-                <Row className="text-center">
-                    <Col>
-                        An interactive web app for automatic puzzle generation and solving
-                    </Col>
-                </Row>
+                    An interactive web app for automatic puzzle generation and solving
 
-                <Row className="text-center pt-2 ibm-plex-serif-semibold">
-                    <Col>
+                    <div className="ibm-plex-serif-semibold">
                         By Ben Sharp
-                    </Col>
-                </Row>
+                    </div>
 
-                <Row className="pt-3 pb-3">
-                    <Col className="d-flex justify-content-center align-items-center">
-                        <img src={solvedPuzzle} alt="A solved calisson puzzle" height={300}/>
-                    </Col>
-                </Row>
+                    <img src={solvedPuzzle} alt="A solved calisson puzzle" height={300}/>
+                </div>
 
-                <Row>
-                    <Col>
-                        This web app was developed as part of my final-year project at the University of Sussex.<br />
-                        The project is open source - feel free to explore the GitHub repository for a more detailed
-                        explanation of its implementation.<br />
-                        <i>(GitHub repo will be made public after submission)</i>
-                    </Col>
-                </Row>
+                This web app was developed as part of my final-year project at the University of Sussex.<br />
+                The project is open source - feel free to explore the GitHub repository for a more detailed
+                explanation of its implementation.<br />
+                <i>(GitHub repo will be made public after submission)</i>
 
-                <Row className="pt-3">
-                    <Col>
-                        <h5>About the Puzzle</h5>
-                    </Col>
-                </Row>
 
-                <Row>
-                    <Col>
-                        The Calissons Puzzle (le jeu des calissons) was created in 2022 by Olivier
-                        Longuet. All credit for the puzzle's design goes to Olivier.
-                        Please check out his blog <a href="https://mathix.org/calisson/blog/" target="_blank">here</a>.
-                    </Col>
-                </Row>
 
-                <Row className="pt-3">
-                    <Col>
-                        <h5>How Does It Work?</h5>
-                    </Col>
-                </Row>
+                <h5 className="pt-3">About the Puzzle</h5>
 
-                <Row>
-                    <Col>
-                        This app implements the <i>advancing surface algorithm</i> outlined in 
-                        this <a href="https://doi.org/10.48550/arXiv.2307.02475" target="_blank">paper</a>.
-                        All credit for the algorithm goes to its authors. Feel free to check out this project's GitHub 
-                        repository for a deeper explanation.
-                    </Col>
-                </Row>
+                The Calissons Puzzle (le jeu des calissons) was created in 2022 by Olivier
+                Longuet. All credit for the puzzle's design goes to Olivier.
+                Please check out his blog <a href="https://mathix.org/calisson/blog/" target="_blank">here</a>.
+
+                <h5 className="pt-3">How Does It Work?</h5>
+
+                This app implements the <i>advancing surface algorithm</i> outlined in 
+                this <a href="https://doi.org/10.48550/arXiv.2307.02475" target="_blank">paper</a>.
+                All credit for the algorithm goes to its authors. Feel free to check out this project's GitHub 
+                repository for a deep dive.
             </Modal.Body>
         </Modal>
     )
