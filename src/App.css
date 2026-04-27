@@ -105,6 +105,11 @@ h1 {
   }
 }
 
+img {
+  image-rendering: auto;
+  transition: opacity 0.2s ease;
+}
+
 .ibm-plex-serif-semibold {
   font-family: "IBM Plex Serif", serif;
   font-weight: 600;

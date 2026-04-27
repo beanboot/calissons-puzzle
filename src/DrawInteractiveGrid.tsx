@@ -3,7 +3,7 @@ import type { Point, Edge } from "./Types";
 import { Node } from "./Node";
 import { findTileNodes, findTilePoints, getNodeFillFromNodes } from "./MiscellaneousFunctions";
 
-// function to visualise graph
+// Function to visualise 2D puzzle graph
 export function DrawInteractiveGrid({
 	graph,
 	edges,
@@ -23,16 +23,16 @@ export function DrawInteractiveGrid({
 }) {
 	return (
 		<>
-			{/* map applies a function to each element iteratively */}
+			{/* Map applies a function to each element iteratively */}
 			{graph.nodes.map((node, i) =>
 				node.neighbours.map((n, j) => {
 					{
-						/* if neighbour id is less than current node id, it means its already been checked */
+						/* If neighbour id is less than current node id, it means its already been checked */
 					}
 					if (n.id <= node.id) return null;
 
 					{
-						/* checks if node is a border node and draws a line */
+						/* Checks if node is a border node and draws a line */
 					}
 					if (node.neighbours.length <= 4 && n.neighbours.length <= 4) {
 						return (
@@ -83,7 +83,7 @@ export function DrawInteractiveGrid({
 									strokeLinecap="round"
 								/>,
 
-								// tile placing interactive node
+								// Tile placing interactive node
 								interactable && canPlaceTileOnNode(findTilePoints(node, n)) && (
 									<circle
 										key={`circle-${i}-${j}`}
@@ -114,11 +114,11 @@ export function DrawInteractiveGrid({
 				}),
 			)}
 
-			{/* draws a dot for every node*/}
+			{/* Draws a dot for every node*/}
 			{graph.nodes.map((node, i) => [
 				<circle key={i} cx={node.value.px} cy={node.value.py} r=".1" fill="black" />,
 
-				// debugging info
+				// Debugging info
 				// <text
 				//   x={node.value.px + 0.1}
 				//   y={node.value.py - 0.05}

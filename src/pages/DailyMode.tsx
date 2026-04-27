@@ -93,7 +93,20 @@ export default function DailyModePage() {
 					return defaultState;
 				}
 
-				return parsed.data;
+				const data = parsed.data;
+
+				const difficulties: Difficulties[] = ["EASY", "MEDIUM", "HARD"];
+
+				for (const d of difficulties) {
+					const s = data[d];
+
+					if (s.autoSolved && !s.isSolved) {
+						s.isSolved = true;
+						s.tileIDs = [];
+					}
+				}
+
+				return data;
 			} catch {
 				return defaultState;
 			}
@@ -373,21 +386,21 @@ export default function DailyModePage() {
 			</Modal>
 
 			{/* Tutorial modal screen */}
-			<TutorialModal 
-				show={showTutorial} 
+			<TutorialModal
+				show={showTutorial}
 				onHide={() => {
 					setShowTutorial(false);
 					localStorage.setItem("hasSeenTutorial", "true");
-				}} 
+				}}
 			/>
 
 			{/* Tutorial modal screen */}
-			<AboutModal 
-				show={showAbout} 
+			<AboutModal
+				show={showAbout}
 				onHide={() => {
-					setShowAbout(false)
+					setShowAbout(false);
 					localStorage.setItem("hasSeenAbout", "true");
-				}} 
+				}}
 			/>
 
 			{/* Reveal solution confirmation */}
@@ -504,8 +517,8 @@ export default function DailyModePage() {
 								Endless Mode <IoMdExit className="icon" />
 							</Button>
 
-							<Button 
-								disabled={isSolved || autoSolved} 
+							<Button
+								disabled={isSolved || autoSolved}
 								onClick={() => setShowConfirmation(true)}
 							>
 								Generate Solution

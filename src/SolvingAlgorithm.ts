@@ -7,7 +7,7 @@ function buildDAG(n: number): SolverGraph {
     const graph = new SolverGraph();
     let nextId = 0;
 
-    // create the back layer
+    // Create the back layer
     for (let y = 0; y < n; y++) {
         for (let z = 0; z < n; z++) {
             const cube: Cube3D = { id: nextId, x: -1, y, z};
@@ -35,7 +35,7 @@ function buildDAG(n: number): SolverGraph {
         }
     }
 
-    // create all internal cubes
+    // Create all internal cubes
     for (let x = 0; x < n; x++) {
         for (let y = 0; y < n; y++) {
             for (let z = 0; z < n; z++) {
@@ -47,7 +47,7 @@ function buildDAG(n: number): SolverGraph {
         }
     }
 
-    // create the front layer
+    // Create the front layer
     for (let y = 0; y < n; y++) {
         for (let z = 0; z < n; z++) {
             const cube: Cube3D = { id: nextId, x: n, y, z};
@@ -75,7 +75,7 @@ function buildDAG(n: number): SolverGraph {
         }
     }
 
-    // add DAG ascendant edges
+    // Add DAG ascendant edges
     for (const node of graph.nodes) {
         const { x, y, z } = node.value as Cube3D
 
@@ -273,7 +273,7 @@ export function solvePuzzle(edges: Edge[], graph: Graph, n: number): CalissonTil
     const DAG = buildDAG(n)
     addUnbreakableEdges(DAG, edges, n)
 
-    // Calculates the low set of DAG nodes underneath the DAG cut
+    // Calculates the nodes reachable from Back
     const lowSet = connectivityFromBack(DAG, n)
 
     const tiles: CalissonTile[] = []
