@@ -1,1 +1,2 @@
-Ben Sharp's final year project for the University of Sussex.
+# The Calissons Puzzle
+### An Interactive Web App for Automatic Puzzle Generation and Solving
