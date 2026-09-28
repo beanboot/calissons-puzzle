@@ -268,7 +268,7 @@ export default function EndlessModePage() {
 
 					<Button
 						disabled={isSolved || autoSolved}
-						onClick={() => generateSolution()}
+						onClick={() => setShowSolutionConfirmation(true)}
 					>
 						Generate Solution
 					</Button>
