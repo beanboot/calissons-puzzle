@@ -48,9 +48,11 @@ export default function DailyModePage() {
 	// Boolean state for puzzle interactability
 	const [interactable, setInteractable] = useState(true);
 
+	// Difficulty states
 	const [difficultySelected, setDifficultSelected] = useState(false);
 	const [difficulty, setDifficulty] = useState<Difficulties>("EASY");
 
+	// Boolean state for showing original puzzle
 	const [showOriginalEdges, setShowOriginalEdges] = useState(false);
 
 	// Record state that links puzzle information to its respective difficulty (and grabs saved data from local storage)
@@ -336,6 +338,7 @@ export default function DailyModePage() {
 		);
 	}
 
+	// Variables for SVG size calculation
 	const R = gridSize + 1;
 	const svgWidth = 3 * R;
 	const svgHeight = Math.sqrt(3) * 2 * R;

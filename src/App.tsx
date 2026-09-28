@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import EndlessModePage from "./pages/EndlessMode"
 import DailyModePage from "./pages/DailyMode"
 
+// Assigns routes
 export default function App() {
   return (
     <BrowserRouter>

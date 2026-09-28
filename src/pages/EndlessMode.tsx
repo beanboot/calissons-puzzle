@@ -35,10 +35,13 @@ export default function EndlessModePage() {
 	// Initialise the grid size state to the default size constant
 	const [gridSize, setGridSize] = useState(2);
 
+	// Streak counter
 	const [puzzlesSolved, setPuzzlesSolved] = useState<number>(0);
 
+	// Ref to avoid rechecking if puzzle is solved
 	const wasSolvedRef = useRef(false);
 
+	// Solved and auto solved boolean states
 	const [isSolved, setIsSolved] = useState(false);
 	const [autoSolved, setAutoSolved] = useState(false);
 
@@ -50,36 +53,34 @@ export default function EndlessModePage() {
 
 	// Initialise empty edges state
 	const [edges, setEdges] = useState<Edge[]>([]);
-
 	const [numberOfEdges, setNumberOfEdges] = useState<number>(4);
 
+	// State for difficulty
 	const [difficulty, setDifficulty] = useState<Difficulties>("EASY");
 
 	// Timer states
 	const [startTime, setStartTime] = useState<number | null>(null);
 	const [elapsedTime, setElapsedTime] = useState<number>(0);
 
+	// Modal states
 	const [showTutorial, setShowTutorial] = useState(false);
 	const [showSolutionConfirmation, setShowSolutionConfirmation] = useState(false);
 	const [showSkipConfirmation, setShowSkipConfirmation] = useState(false);
 
+	// Boolean state for showing original puzzle
 	const [showOriginalEdges, setShowOriginalEdges] = useState(false);
 
 	const navigate = useNavigate();
 
 	// Initialise state for storing adjacent nodes to any node being hovered by user
-	const [hoveredNodeAdjacentNodes, setHoveredNodeAdjacentNodes] = useState<
-		Node[]
-	>([]);
+	const [hoveredNodeAdjacentNodes, setHoveredNodeAdjacentNodes] = useState<Node[]>([]);
 
 	// Memoized graph will only be redrawn if grid size changes
 	const graph = useMemo(() => build2DGraph(gridSize), [gridSize]);
 
 	// Function to place tiles when node is clicked
 	function handleNodeClick(points: Point[], nodes: Node[]) {
-		const id = nodes
-			.map((p) => `${p.value.q},${p.value.r},${p.value.s}`)
-			.join("|");
+		const id = nodes.map((p) => `${p.value.q},${p.value.r},${p.value.s}`).join("|");
 
 		setTiles((prevTiles) => {
 			const tileExists = prevTiles.find((tile) => tile.id === id);
@@ -219,6 +220,7 @@ export default function EndlessModePage() {
 		}
 	}, []);
 
+	// Variables for SVG size calculation
 	const R = gridSize + 1;
 	const viewboxWidth = 3 * R;
 	const viewboxHeight = Math.sqrt(3) * 2 * R;
@@ -228,10 +230,7 @@ export default function EndlessModePage() {
 	return (
 		<Container fluid className="page ibm-plex-serif-semibold">
 			{/* Tutorial modal screen */}
-			<TutorialModal
-				show={showTutorial}
-				onHide={() => setShowTutorial(false)}
-			/>
+			<TutorialModal show={showTutorial} onHide={() => setShowTutorial(false)} />
 
 			{/* Reveal solution confirmation */}
 			<ConfirmationModal
@@ -259,9 +258,7 @@ export default function EndlessModePage() {
 			/>
 
 			{/* Draws confetti if puzzle is solved */}
-			{isSolved && !autoSolved && (
-				<Confetti width={width} height={height} recycle={false} />
-			)}
+			{isSolved && !autoSolved && <Confetti width={width} height={height} recycle={false} />}
 
 			<Row className="d-flex justify-content-center align-items-start top-row flex-nowrap">
 				<Col xs="auto" className="d-flex flex-column align-items-start gap-1">
@@ -271,7 +268,7 @@ export default function EndlessModePage() {
 
 					<Button
 						disabled={isSolved || autoSolved}
-						onClick={() => setShowSolutionConfirmation(true)}
+						onClick={() => generateSolution()}
 					>
 						Generate Solution
 					</Button>
@@ -296,11 +293,7 @@ export default function EndlessModePage() {
 					)}
 
 					{isSolved && (
-						<Button 
-							disabled={!isSolved} 
-							onClick={handleNextPuzzle}
-							variant="success"
-						>
+						<Button disabled={!isSolved} onClick={handleNextPuzzle} variant="success">
 							Next Puzzle
 						</Button>
 					)}
@@ -342,16 +335,16 @@ export default function EndlessModePage() {
 
 			<Row className="bottom-row">
 				<Col className="d-flex justify-content-center align-items-top gap-2">
-					<DropdownButton id="difficulty-dropdown" title={difficulty} disabled={autoSolved && !isSolved}>
-						<Dropdown.Item onClick={() => setDifficulty("EASY")}>
-							Easy
-						</Dropdown.Item>
+					<DropdownButton
+						id="difficulty-dropdown"
+						title={difficulty}
+						disabled={autoSolved && !isSolved}
+					>
+						<Dropdown.Item onClick={() => setDifficulty("EASY")}>Easy</Dropdown.Item>
 						<Dropdown.Item onClick={() => setDifficulty("MEDIUM")}>
 							Medium
 						</Dropdown.Item>
-						<Dropdown.Item onClick={() => setDifficulty("HARD")}>
-							Hard
-						</Dropdown.Item>
+						<Dropdown.Item onClick={() => setDifficulty("HARD")}>Hard</Dropdown.Item>
 					</DropdownButton>
 
 					{!isSolved && (

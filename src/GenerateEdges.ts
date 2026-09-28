@@ -42,6 +42,7 @@ function generateRandomEdges(graph: Graph, numOfEdges: number, rng: () => number
 	return edges;
 }
 
+// Generates edges until a solvable set is generated - seeds will provide the same sequence
 export function generateSolvableEdges(
 	graph: Graph,
 	numOfEdges: number,
