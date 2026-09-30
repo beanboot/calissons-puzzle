@@ -164,6 +164,15 @@ export function AboutModal({ show, onHide }: AboutModalProps) {
 					<h2>The Calissons Puzzle</h2>
 					An interactive web app for automatic puzzle generation and solving
 					<div className="ibm-plex-serif-semibold">By Ben Sharp</div>
+					<p>
+					<a href="https://github.com/beanboot" target="_blank" rel="noreferrer">
+						GitHub
+					</a>
+					{" • "}
+					<a href="https://www.linkedin.com/in/bensharp05/" target="_blank" rel="noreferrer">
+						LinkedIn
+					</a>
+					</p>
 					<img src={solvedPuzzle} alt="A solved calisson puzzle" height={300} />
 				</div>
 				This web app was developed as part of my final-year project at the University of
@@ -172,7 +181,6 @@ export function AboutModal({ show, onHide }: AboutModalProps) {
 				The project is open source - feel free to explore the GitHub repository for a more
 				detailed explanation of its implementation.
 				<br />
-				<i>(GitHub repo will be made public after submission)</i>
 				<h5 className="pt-3">About the Puzzle</h5>
 				The Calissons Puzzle (le jeu des calissons) was created in 2022 by Olivier Longuet.
 				All credit for the puzzle's design goes to Olivier. Please check out his blog{" "}

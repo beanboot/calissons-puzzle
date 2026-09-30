@@ -61,10 +61,10 @@ The core solving algorithm models the puzzle as a **directed acyclic graph (DAG)
 
 ## Tech Stack
 
-- **React** – component-based UI
-- **TypeScript** – type-safe application logic
-- **Vite** – development & build tooling
-- **SVG** – scalable interactive puzzle rendering
+- **React** – Component-based UI
+- **TypeScript** – Type-safe application logic
+- **Vite** – Development & build tooling
+- **SVG** – Scalable interactive puzzle rendering
 
 ---
 
@@ -76,6 +76,12 @@ cd calissons-puzzle
 npm install
 npm run dev
 ```
+
+---
+
+## Documentation
+
+- [Dissertation Report](dissertation/dissertation_report.pdf) — Full technical report covering the design, implementation, Advancing Surface Algorithm, puzzle generation, and user testing.
 
 ---
 
