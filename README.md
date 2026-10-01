@@ -11,12 +11,12 @@
 
 ## Features
 
-- Procedurally generates **solvable** puzzles
-- Easy, Medium & Hard difficulty modes
-- Seeded **Daily Puzzle** generation
+- Procedurally generates solvable puzzles
+- Three difficulty modes
+- Seeded daily puzzle generation
 - Endless mode with timer & streak tracking
 - In-game tutorials detailing gameplay instructions and rules
-- Automatic solution generation with algorithm visualisation
+- Automatic solution generation with algorithm visualization
 - Built with React, TypeScript & SVG rendering
 
 </td>
@@ -33,7 +33,7 @@ The Calissons Puzzle (created by Olivier Longuet) is a geometric logic puzzle wh
 
 <img src="src/assets/solution_tiling.png" width="600">
 
-This implementation is based on the **Advancing Surface Algorithm** described in <a href="https://doi.org/10.48550/arXiv.2307.02475"> *The Calissons Puzzle* </a>
+This implementation is based on the **Advancing Surface Algorithm** described in <a href="https://doi.org/10.48550/arXiv.2307.02475"> *The Calissons Puzzle*</a>.
 
 The core solving algorithm models the puzzle as a **directed acyclic graph (DAG)** representing a 3D stepped surface hidden beneath the 2D puzzle. Puzzle edges become graph constraints, and a valid solution is found by computing a graph cut using breadth-first search.
 
@@ -51,7 +51,7 @@ The core solving algorithm models the puzzle as a **directed acyclic graph (DAG)
 | Mode | Description |
 |------|-------------|
 | **Endless** | Unlimited procedurally generated puzzles of any difficulty |
-| **Daily** | Three seeded puzzles (Easy, Medium & Hard) shared by all players each day |
+| **Daily** | Three seeded puzzles (easy, medium & hard) shared by all players each day |
 
 <img src="src/assets/gameplay.png" width="600">
 

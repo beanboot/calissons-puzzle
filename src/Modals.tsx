@@ -165,7 +165,7 @@ export function AboutModal({ show, onHide }: AboutModalProps) {
 					An interactive web app for automatic puzzle generation and solving
 					<div className="ibm-plex-serif-semibold">By Ben Sharp</div>
 					<p>
-					<a href="https://github.com/beanboot" target="_blank" rel="noreferrer">
+					<a href="https://github.com/beanboot/calissons-puzzle" target="_blank" rel="noreferrer">
 						GitHub
 					</a>
 					{" • "}
