@@ -4,10 +4,10 @@
 
 <table>
 <tr>
-<td width="40%">
+<td>
 <img src="src/assets/solved_calisson.gif" width="300">
 </td>
-<td>
+<td width="60%">
 
 ## Features
 
@@ -27,8 +27,6 @@
 
 The Calissons Puzzle (created by Olivier Longuet) is a geometric logic puzzle where coloured rhombus tiles must be placed inside a hexagonal grid to satisfy a set of edge constraints. This project recreates the puzzle as a modern web application, featuring procedural puzzle generation and an implementation of the **Advancing Surface Algorithm** to guarantee solvable puzzles and generate minimal solutions.
 
----
-
 ## The Advancing Surface Algorithm
 
 <img src="src/assets/solution_tiling.png" width="600">
@@ -44,8 +42,6 @@ The core solving algorithm models the puzzle as a **directed acyclic graph (DAG)
 - Runs in **O(n³)** time for an *n × n* puzzle
 - Powers both puzzle generation and the in-app solver
 
----
-
 ## Gameplay
 
 | Mode | Description |
@@ -57,16 +53,12 @@ The core solving algorithm models the puzzle as a **directed acyclic graph (DAG)
 
 *For detailed gameplay instructions - use the in-game tutorial.*
 
----
-
 ## Tech Stack
 
 - **React** – Component-based UI
 - **TypeScript** – Type-safe application logic
 - **Vite** – Development & build tooling
 - **SVG** – Scalable interactive puzzle rendering
-
----
 
 ## Running Locally
 
@@ -77,13 +69,9 @@ npm install
 npm run dev
 ```
 
----
-
 ## Documentation
 
 - [Dissertation Report](dissertation/dissertation_report.pdf) — Full technical report covering the design, implementation, Advancing Surface Algorithm, puzzle generation, and user testing.
-
----
 
 ## Future Improvements
 
